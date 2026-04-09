@@ -677,7 +677,9 @@ Returns the input or output column headers for factorId-based calculations. Use 
 
 **Examples**
 
-.. code-block:: none
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
 
    =ENVIZI.HEADERS_BY_FACTORID("location", TRUE)     // Returns: factorId, value, unit
    =ENVIZI.HEADERS_BY_FACTORID("factor", TRUE)       // Returns: factorId, unit
