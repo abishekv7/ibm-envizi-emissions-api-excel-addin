@@ -1,92 +1,10 @@
 ﻿// Copyright IBM Corp. 2025
 
-import { genericApiCall } from "./generic-api-call";
-import { factorSearch } from "./factorSearchHelper";
 import { factorHelper } from "./factorHelper";
-import { handleTypesFunction } from "./types-handler";
-import { handleUnitsFunction } from "./units-handler";
-import { handleCountryFunction, handleStateProvinceFunction, handlePowerGridFunction } from "./area-handler";
-
-/**
- * Triggers data validation dropdown for API types.
- * Returns the API name and stores a request for the taskpane to apply validation.
- * @customfunction
- * @param apiName The name of the API (location, mobile, fugitive, stationary, calculation, transportationanddistribution, factor)
- * @param invocation Invocation object to get cell address
- * @requiresAddress
- */
-export async function types(
-  apiName: string,
-  invocation: CustomFunctions.Invocation
-): Promise<string> {
-  return handleTypesFunction(apiName, invocation);
-}
-
-/**
- * Triggers data validation dropdown for API units.
- * Fetches units on-demand from the API and applies validation to the cell.
- * @customfunction
- * @param apiName The name of the API (location, mobile, fugitive, stationary, calculation, transportationanddistribution, factor)
- * @param type The type parameter to fetch units for (e.g., "electricity")
- * @param invocation Invocation object to get cell address
- * @requiresAddress
- */
-export async function units(
-  apiName: string,
-  type: string,
-  invocation: CustomFunctions.Invocation
-): Promise<string> {
-  return handleUnitsFunction(apiName, type, invocation);
-}
-
-/**
- * Triggers data validation dropdown for country selection.
- * Fetches countries from the API and applies validation to the cell.
- * @customfunction
- * @param apiName The name of the API (location, mobile, fugitive, stationary, calculation, transportationanddistribution, factor, factorsearch)
- * @param invocation Invocation object to get cell address
- * @requiresAddress
- */
-export async function country(
-  apiName: string,
-  invocation: CustomFunctions.Invocation
-): Promise<string> {
-  return handleCountryFunction(apiName, invocation);
-}
-
-/**
- * Triggers data validation dropdown for state/province selection.
- * Fetches state/province data for the specified country and applies validation to the cell.
- * @customfunction
- * @param apiName The name of the API (location, mobile, fugitive, stationary, calculation, transportationanddistribution, factor, factorsearch)
- * @param country The country alpha3 code (e.g., "USA", "CAN")
- * @param invocation Invocation object to get cell address
- * @requiresAddress
- */
-export async function state_province(
-  apiName: string,
-  country: string,
-  invocation: CustomFunctions.Invocation
-): Promise<string> {
-  return handleStateProvinceFunction(apiName, country, invocation);
-}
-
-/**
- * Triggers data validation dropdown for power grid selection.
- * Fetches power grid data for the specified country and applies validation to the cell.
- * @customfunction
- * @param apiName The name of the API (location, mobile, fugitive, stationary, calculation, transportationanddistribution, factor, factorsearch)
- * @param country The country alpha3 code (e.g., "USA", "CAN")
- * @param invocation Invocation object to get cell address
- * @requiresAddress
- */
-export async function power_grid(
-  apiName: string,
-  country: string,
-  invocation: CustomFunctions.Invocation
-): Promise<string> {
-  return handlePowerGridFunction(apiName, country, invocation);
-}
+import { factorSearch } from "./factorSearchHelper";
+import { genericApiCall } from "./generic-api-call";
+import { getInputHeaders, getOutputHeaders, isValidFunctionName, VALID_FUNCTION_NAMES } from "./headers-config";
+import { typeRecommender } from "./typeRecommenderHelper";
 
 /**
  * Calculates location-based emissions.
@@ -390,6 +308,24 @@ export async function factor_search(
 }
 
 /**
+ * Recommends activity types based on search query and location context.
+ * @customfunction
+ * @helpurl https://ibm.github.io/ibm-envizi-emissions-api-excel-addin/reference.html#data-type-recommender
+ * @param search Search query string describing the activity
+ * @param country ISO alpha-3 country code
+ * @param stateProvince Geographic state or province
+ * @param date Activity date
+ */
+export async function RECOMMEND_ACTIVITY_TYPE(
+  search: string,
+  country: string,
+  stateProvince?: string,
+  date?: string
+): Promise<any[][]> {
+  return typeRecommender(search, country, stateProvince, date);
+}
+
+/**
  * Calculates emissions using the factor endpoint.
  * @customfunction
  * @helpurl https://ibm.github.io/ibm-envizi-emissions-api-excel-addin/reference.html#factor
@@ -418,4 +354,212 @@ export async function factor(
  */
 export async function factor_by_id(factorId: number, unit?: string): Promise<any[][]> {
   return factorHelper(factorId, unit);
+}
+
+/**
+ * Calculates emissions using the economic activity endpoint.
+ * @customfunction
+ * @helpurl https://ibm.github.io/ibm-envizi-emissions-api-excel-addin/reference.html#economic-activity
+ * @param type Activity type
+ * @param value Numeric activity value
+ * @param unit Unit of measurement
+ * @param country ISO alpha-3 country code
+ * @param stateProvince Geographic state or province
+ * @param date Activity date
+ */
+export async function economic_activity(
+  type: string,
+  value: number,
+  unit: string,
+  country: string,
+  stateProvince?: string,
+  date?: string
+): Promise<any[][]> {
+  return genericApiCall("economic_activity", {
+    type,
+    value,
+    unit,
+    country,
+    stateProvince,
+    date,
+  });
+}
+
+/**
+ * Calculates emissions using the economic activity endpoint.
+ * @customfunction
+ * @helpurl https://ibm.github.io/ibm-envizi-emissions-api-excel-addin/reference.html#economic-activity
+ * @param factorId Emission factor ID
+ * @param value Numeric activity value
+ * @param unit Unit of measurement
+ */
+export async function economic_activity_by_factorId(
+  factorId: number,
+  value: number,
+  unit: string
+): Promise<any[][]> {
+  return genericApiCall("economic_activity", {
+    factorId,
+    value,
+    unit,
+  });
+}
+
+/**
+ * Calculates emissions using the real estate endpoint.
+ * @customfunction
+ * @helpurl https://ibm.github.io/ibm-envizi-emissions-api-excel-addin/reference.html#real-estate
+ * @param type Activity type
+ * @param value Numeric activity value
+ * @param unit Unit of measurement
+ * @param country ISO alpha-3 country code
+ * @param stateProvince Geographic state or province
+ * @param date Activity date
+ */
+export async function real_estate(
+  type: string,
+  value: number,
+  unit: string,
+  country: string,
+  stateProvince?: string,
+  date?: string
+): Promise<any[][]> {
+  return genericApiCall("real_estate", {
+    type,
+    value,
+    unit,
+    country,
+    stateProvince,
+    date,
+  });
+}
+
+/**
+ * Calculates emissions using the real estate endpoint.
+ * @customfunction
+ * @helpurl https://ibm.github.io/ibm-envizi-emissions-api-excel-addin/reference.html#real-estate
+ * @param factorId Emission factor ID
+ * @param value Numeric activity value
+ * @param unit Unit of measurement
+ */
+export async function real_estate_by_factorId(
+  factorId: number,
+  value: number,
+  unit: string
+): Promise<any[][]> {
+  return genericApiCall("real_estate", {
+    factorId,
+    value,
+    unit,
+  });
+}
+
+/**
+ * Returns the input or output headers for a specific endpoint.
+ * @customfunction
+ * @helpurl https://ibm.github.io/ibm-envizi-emissions-api-excel-addin/reference.html#headers
+ * @param functionName Endpoint name (location, stationary, fugitive, mobile, transportation_and_distribution, calculation, economic_activity, real_estate, factor, factor_search, RECOMMEND_ACTIVITY_TYPE)
+ * @param input Whether to return input headers (true) or output headers (false). Default is false.
+ * @param includeDataTypeRecommender Whether to include data type recommender headers after "type" field for input headers (default: false). Only applies when input=true.
+ * @returns Array of header names as a single row
+ */
+export async function headers(
+  functionName?: string,
+  input?: boolean | string,
+  includeDataTypeRecommender?: boolean | string
+): Promise<string[][]> {
+  try {
+    // Default to "calculation" if no endpoint provided
+    const selectedEndpoint = functionName?.trim().toLowerCase() || "calculation";
+    
+    // Handle boolean parameter - support both boolean and string inputs (case-insensitive)
+    const isInput = typeof input === "string"
+      ? input.trim().toLowerCase() === "true"
+      : input === true;
+
+    // Handle includeDataTypeRecommender parameter
+    const includeRecommender = typeof includeDataTypeRecommender === "string"
+      ? includeDataTypeRecommender.trim().toLowerCase() === "true"
+      : includeDataTypeRecommender === true;
+
+    // Validate function name
+    if (!isValidFunctionName(selectedEndpoint)) {
+      throw new CustomFunctions.Error(
+        CustomFunctions.ErrorCode.invalidValue,
+        `Invalid function name: "${selectedEndpoint}". Valid function names are: ${VALID_FUNCTION_NAMES.join(", ")}`
+      );
+    }
+
+    // Get the appropriate headers
+    const headersList = isInput
+      ? getInputHeaders(selectedEndpoint, false, includeRecommender)
+      : getOutputHeaders(selectedEndpoint);
+
+    // Return as a single row array
+    return [headersList];
+  } catch (e: any) {
+    if (e instanceof CustomFunctions.Error) throw e;
+
+    const message = e?.message || "Unknown error";
+    console.error("Headers function failed: ", message);
+
+    throw new CustomFunctions.Error(
+      CustomFunctions.ErrorCode.notAvailable,
+      message
+    );
+  }
+}
+
+/**
+ * Returns the input or output headers for factorId-based calculations.
+ * @customfunction
+ * @helpurl https://ibm.github.io/ibm-envizi-emissions-api-excel-addin/reference.html#headers-by-factorid
+ * @param functionName Endpoint name (location, stationary, fugitive, mobile, transportation_and_distribution, calculation, economic_activity, real_estate, factor)
+ * @param input Whether to return input headers (true) or output headers (false). Default is false.
+ * @returns Array of header names as a single row
+ */
+export async function headers_by_factorid(functionName?: string, input?: boolean | string): Promise<string[][]> {
+  try {
+    // Default to "calculation" if no endpoint provided
+    const selectedEndpoint = functionName?.trim().toLowerCase() || "calculation";
+    
+    // Handle boolean parameter - support both boolean and string inputs (case-insensitive)
+    const isInput = typeof input === "string"
+      ? input.trim().toLowerCase() === "true"
+      : input === true;
+
+    // Validate function name
+    if (!isValidFunctionName(selectedEndpoint)) {
+      throw new CustomFunctions.Error(
+        CustomFunctions.ErrorCode.invalidValue,
+        `Invalid function name: "${selectedEndpoint}". Valid function names are: ${VALID_FUNCTION_NAMES.join(", ")}`
+      );
+    }
+
+    // factor_search and RECOMMEND_ACTIVITY_TYPE don't support factorId-based calls
+    if (selectedEndpoint === "factor_search" || selectedEndpoint === "RECOMMEND_ACTIVITY_TYPE") {
+      throw new CustomFunctions.Error(
+        CustomFunctions.ErrorCode.invalidValue,
+        `Function "${selectedEndpoint}" does not support factorId-based calls`
+      );
+    }
+
+    // Get the appropriate headers
+    const headersList = isInput
+      ? getInputHeaders(selectedEndpoint, true, false)  // true = use factorId headers, false = no recommender for factorId
+      : getOutputHeaders(selectedEndpoint);
+
+    // Return as a single row array
+    return [headersList];
+  } catch (e: any) {
+    if (e instanceof CustomFunctions.Error) throw e;
+
+    const message = e?.message || "Unknown error";
+    console.error("Headers by factorId function failed: ", message);
+
+    throw new CustomFunctions.Error(
+      CustomFunctions.ErrorCode.notAvailable,
+      message
+    );
+  }
 }

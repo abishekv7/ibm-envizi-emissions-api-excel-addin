@@ -10,7 +10,7 @@ Before installing the add-in, ensure the following requirements are met:
 
 - Microsoft Excel (Office 365 Online, Mac or Windows)
 - Active internet connection
-- API credentials (``apiKey``, ``tenantId``, ``orgId``), are available on the `Overview Dashboard <https://www.app.ibm.com/envizi/emissions-api-home/overview?cuiURL=%2Femissions-api-home%2Foverview>`_ after `sign up <https://www.ibm.com/account/reg/us-en/signup?formid=urx-53999>`_.
+- API credentials (``apiKey``, ``tenantId``, ``orgId``), are available on the `Overview Dashboard <https://www.app.ibm.com/envizi/emissions-api-home/overview?cuiURL=%2Femissions-api-home%2Foverview>`_ after `sign up <https://www.ibm.com/account/reg/us-en/signup?formid=urx-54313>`_.
 
 -------
 Install 
@@ -18,39 +18,14 @@ Install
 
 In order to use **IBM Envizi Emissions API** for Excel, there are two options to install:
 
-1. Download from the AppSource Store (coming soon)
-2. Sideload a manifest.xml file
-
-Microsoft AppSource Store
-=========================
-
-Coming soon.
-
-
-Sideload
-========
-
-Download the Manifest File
---------------------------
-
-The manifest file is available at the following location:
-
-`manifest.xml <https://plugins.app.ibm.com/excel-addin/manifest.xml>`_
-
-.. important::
- If your browser displays the XML content instead of downloading the file, select **File** → **Save As**, name the file **manifest.xml**, and save it to your preferred location.
-
-Platform-Specific Installation
-------------------------------
-
-The following sections contain instructions for sideloading the Add-in in different environments, please choose the one that is relevant:
+1. Install from the Microsoft Marketplace (Recommended)
+2. Sideload using a manifest.xml file
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
-   online
-   windows
-   mac
+   install-appstore
+   install-manifest
 
 .. important::
    Note that Excel custom functions are available on the following platforms:

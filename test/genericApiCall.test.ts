@@ -21,26 +21,36 @@
   },
 };
 
-import { genericApiCall } from "../src/functions/generic-api-call";
-import { ensureClient } from "../src/functions/client";
-import { convertExcelDateToISO } from "../src/functions/utils";
-
-import {
-  Location,
-  Mobile,
-  Fugitive,
-  Stationary,
-  Calculation,
-  TransportationAndDistribution,
-} from "emissions-api-sdk";
+// Mock the utils module BEFORE imports
+jest.mock("../src/functions/utils", () => ({
+  convertExcelDateToISO: jest.fn().mockReturnValue("2025-08-23"),
+  extractSymbolFromDisplay: jest.fn((value) => {
+    // Mock implementation: extract symbol from "Symbol(Name)" or return as-is
+    if (!value) return value;
+    const match = value.match(/\(([^)]+)\)$/);
+    return match ? match[1] : value;
+  }),
+  extractValueAfterDash: jest.fn((value) => value), // pass-through by default
+}));
 
 jest.mock("../src/functions/client", () => ({
   ensureClient: jest.fn().mockResolvedValue(undefined),
 }));
 
-jest.mock("../src/functions/utils", () => ({
-  convertExcelDateToISO: jest.fn().mockReturnValue("2025-08-23"),
-}));
+import { ensureClient } from "../src/functions/client";
+import { genericApiCall } from "../src/functions/generic-api-call";
+import { convertExcelDateToISO } from "../src/functions/utils";
+
+import {
+  Calculation,
+  EconomicActivity,
+  Fugitive,
+  Location,
+  Mobile,
+  RealEstate,
+  Stationary,
+  TransportationAndDistribution,
+} from "emissions-api-sdk";
 
 // Mock Emission classes
 jest.mock("emissions-api-sdk", () => {
@@ -52,6 +62,8 @@ jest.mock("emissions-api-sdk", () => {
     Stationary: { calculate: jest.fn() },
     Calculation: { calculate: jest.fn() },
     TransportationAndDistribution: { calculate: jest.fn() },
+    EconomicActivity: { calculate: jest.fn() },
+    RealEstate: { calculate: jest.fn() },
     default: {},
   };
 });
@@ -80,6 +92,11 @@ const mockResponse = {
   transactionId: "txn-123",
 };
 
+const mockRealEstateResponse = {
+  ...mockResponse,
+  "energy(MWh)": 42,
+};
+
 type ApiCase = {
   name: string;
   apiType:
@@ -88,38 +105,65 @@ type ApiCase = {
     | "fugitive"
     | "mobile"
     | "calculation"
-    | "transportation_and_distribution";
+    | "transportation_and_distribution"
+    | "economic_activity"
+    | "real_estate";
   emissionMock: jest.Mock;
+  expectedResult?: (string | number)[];
 };
 
+// All APIs use STANDARD_OUTPUT_HEADERS: TotalCO2e, CO2, CH4, N2O, HFC, PFC, SF6, NF3, BioCO2, IndirectCO2e, Unit, Description, Transaction Id
+// API returns camelCase, but headers are displayed with proper capitalization
+const standardExpectedResult = [100, 50, 10, 5, 0, 0, 0, 0, 0, 2, "kgCO2e", "Mock description", "txn-123"];
+
 const apiCases: ApiCase[] = [
-  { name: "Location", apiType: "location", emissionMock: Location.calculate as jest.Mock },
+  { name: "Location", apiType: "location", emissionMock: Location.calculate as jest.Mock, expectedResult: standardExpectedResult },
   {
     name: "Stationary",
     apiType: "stationary",
     emissionMock: Stationary.calculate as jest.Mock,
+    expectedResult: standardExpectedResult,
   },
-  { name: "Fugitive", apiType: "fugitive", emissionMock: Fugitive.calculate as jest.Mock },
-  { name: "Mobile", apiType: "mobile", emissionMock: Mobile.calculate as jest.Mock },
+  { name: "Fugitive", apiType: "fugitive", emissionMock: Fugitive.calculate as jest.Mock, expectedResult: standardExpectedResult },
+  { name: "Mobile", apiType: "mobile", emissionMock: Mobile.calculate as jest.Mock, expectedResult: standardExpectedResult },
   {
     name: "Generic Calculation",
     apiType: "calculation",
     emissionMock: Calculation.calculate as jest.Mock,
+    expectedResult: standardExpectedResult,
   },
   {
     name: "Transportation & Distribution",
     apiType: "transportation_and_distribution",
     emissionMock: TransportationAndDistribution.calculate as jest.Mock,
+    expectedResult: standardExpectedResult,
+  },
+  {
+    name: "Economic Activity",
+    apiType: "economic_activity",
+    emissionMock: EconomicActivity.calculate as jest.Mock,
+    expectedResult: standardExpectedResult,
+  },
+  {
+    name: "Real Estate",
+    apiType: "real_estate",
+    emissionMock: RealEstate.calculate as jest.Mock,
+    expectedResult: standardExpectedResult,
   },
 ];
 
 describe("genericApiCall", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    apiCases.forEach((c) => c.emissionMock.mockResolvedValue(mockResponse));
+    apiCases.forEach((c) => {
+      const response = c.apiType === "real_estate" ? mockRealEstateResponse : mockResponse;
+      c.emissionMock.mockResolvedValue(response);
+    });
   });
 
-  describe.each(apiCases)("$name API", ({ apiType, emissionMock }) => {
+  describe.each(apiCases)("$name API", ({ apiType, emissionMock, expectedResult }) => {
+    const expected = expectedResult!;
+
     it("should call the correct emission API and return excelResponse (type-based payload)", async () => {
       const payload = {
         value: 100,
@@ -146,9 +190,7 @@ describe("genericApiCall", () => {
         })
       );
 
-      expect(result).toEqual([
-        [100, 50, 10, 5, 0, 0, 0, 0, 0, 2, "kgCO2e", "Mock description", "txn-123"],
-      ]);
+      expect(result).toEqual([expected]);
     });
 
     it("should call the correct emission API and return excelResponse (factorId-based payload)", async () => {
@@ -171,9 +213,7 @@ describe("genericApiCall", () => {
         })
       );
       // No location or time for factorId case
-      expect(result).toEqual([
-        [100, 50, 10, 5, 0, 0, 0, 0, 0, 2, "kgCO2e", "Mock description", "txn-123"],
-      ]);
+      expect(result).toEqual([expected]);
     });
   });
 

@@ -1,11 +1,13 @@
 /*
- * Copyright IBM Corp. 2025
+ * Copyright IBM Corp. 2025, 2026
  * Copyright (c) Microsoft Corporation. All rights reserved. Licensed under the MIT license.
  * See LICENSE in the project root for license information.
  */
 
 html,
-body {
+body,
+#root,
+.fluent-provider {
   width: 100%;
   height: 100%;
 }
@@ -86,6 +88,13 @@ b {
   font-weight: bold;
 }
 
+.welcome-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  position: relative;
+}
+
 .welcome-page .ms-List {
   margin-inline-start: 24px;
 }
@@ -106,6 +115,8 @@ b {
 
 .welcome-body {
   padding: 20px;
+  flex: 1;
+  padding-bottom: 60px;
 }
 
 .welcome-bottom {
@@ -113,6 +124,7 @@ b {
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: 0.5rem;
 }
 
 #get-started-button {
@@ -171,13 +183,16 @@ b {
   padding-block-end: 10px;
 }
 
-.text-block:not(:last-child) {
-  margin-block-end: 12px;
+.accordion-content > p:first-child {
+  margin-block-end: 16px;
 }
 
-.text-header {
-  font-weight: bold;
-  margin-block-end: 4px;
+.text-block {
+  margin-block-start: 12px;
+}
+
+.text-block:not(:last-child) {
+  margin-block-end: 12px;
 }
 
 .block-header {
@@ -208,6 +223,142 @@ b {
   margin-block-start: 32px;
 }
 
-.account-buttons fluent-button {
+.account-buttons button {
   width: 256px;
+}
+
+/* Envizi Login Page Styles */
+.envizi-login-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.envizi-login-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  padding: 0 20px;
+  flex-grow: 1;
+}
+
+.envizi-welcome-text {
+  padding-top: 20px;
+}
+
+.envizi-illustration {
+  width: 100%;
+  display: block;
+}
+
+.envizi-login-actions {
+  width: 100%;
+  max-width: 200px;
+}
+
+.envizi-login-button {
+  width: 100%;
+}
+
+.envizi-footer-link {
+  text-align: center;
+}
+
+.envizi-copyright {
+  display: flex;
+  justify-content: center;
+}
+
+.envizi-copyright-text {
+  align-content: center;
+}
+
+.envizi-footer-image {
+  width: 48px;
+  height: 32px;
+}
+
+/* Emission Scope Section Styles */
+
+.accordion-content > .emission-scope:first-of-type {
+  padding-block-start: 12px;
+}
+
+.emission-scope {
+  padding-block-end: 12px;
+}
+
+.scope-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.formulas-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.emission-formula-item {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-block: 12px;
+}
+
+.formula-category-section {
+  margin-block-end: 8px;
+}
+
+.formula-syntax code {
+  font-size: 14px;
+  color: #24a148;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.formula-divider {
+  height: 1px;
+  background-color: var(--colorNeutralStroke2);
+}
+
+.resouce {
+  padding-inline: 8px;
+  padding-block: 20px;
+}
+
+.image-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-inline: 12px;
+  margin-block-end: 16px;
+}
+
+.image-container {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+}
+
+.play-button-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.play-button-overlay svg {
+  font-size: 42px;
+}
+
+.image-placeholder {
+  display: flex;
+  justify-content: center;
+}
+
+.learn-more-btn {
+  display: flex;
+  justify-content: center;
 }

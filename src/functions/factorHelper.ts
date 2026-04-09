@@ -1,9 +1,10 @@
-// Copyright IBM Corp. 2025
+// Copyright IBM Corp. 2025, 2026
 
 import { Factor } from "emissions-api-sdk";
 
 import { ensureClient } from "./client";
-import { convertExcelDateToISO } from "./utils";
+import { formatRow } from "./headers-config";
+import { convertExcelDateToISO, extractSymbolFromDisplay, extractValueAfterDash } from "./utils";
 
 export async function factorHelper(
   typeOrId: string | number,
@@ -14,16 +15,25 @@ export async function factorHelper(
 ): Promise<any[][]> {
   await ensureClient();
 
+  // Extract unit symbol from display format: "kg (kilogram)" → "kg"
+  const unitSymbol = extractSymbolFromDisplay(unit) || unit;
+
   let apiParams: any = {
-    activity: { unit },
+    activity: { unit: unitSymbol },
   };
 
   if (typeof typeOrId === "string") {
     apiParams.activity.type = typeOrId;
 
     if (country) {
-      apiParams.location = { country };
-      if (stateProvince) apiParams.location.stateProvince = stateProvince;
+      // Extract country code from display format: "USA (United States)" → "USA"
+      const countryCode = extractSymbolFromDisplay(country) || country;
+      apiParams.location = { country: countryCode };
+      if (stateProvince) {
+        // Extract state/province from display format: "USA - California" → "California"
+        const stateProvinceValue = extractValueAfterDash(stateProvince) || stateProvince;
+        apiParams.location.stateProvince = stateProvinceValue;
+      }
     }
 
     if (date?.trim()) {
@@ -40,37 +50,5 @@ export async function factorHelper(
     throw new CustomFunctions.Error(CustomFunctions.ErrorCode.notAvailable, "Invalid API response");
   }
 
-  // Handle activityUnit as array (join with ", " to maintain single column)
-  const activityUnit = Array.isArray(response.activityUnit)
-    ? response.activityUnit.join(", ")
-    : (response.activityUnit ?? "");
-
-  return [
-    [
-      response.factorSet ?? "",
-      response.source ?? "",
-      response.activityType ?? "",
-      activityUnit,
-      response.name ?? "",
-      response.description ?? "",
-      response.effectiveFrom ?? "",
-      response.effectiveTo ?? "",
-      response.publishedFrom ?? "",
-      response.publishedTo ?? "",
-      response.region ?? "",
-      response.totalCO2e ?? 0,
-      response.CO2 ?? 0,
-      response.CH4 ?? 0,
-      response.N2O ?? 0,
-      response.HFC ?? 0,
-      response.PFC ?? 0,
-      response.SF6 ?? 0,
-      response.NF3 ?? 0,
-      response.bioCO2 ?? 0,
-      response.indirectCO2e ?? 0,
-      response.unit ?? "",
-      response.factorId ?? "",
-      response.transactionId ?? "",
-    ],
-  ];
+  return [formatRow(response, "factor")];
 }

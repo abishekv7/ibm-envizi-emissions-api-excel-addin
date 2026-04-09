@@ -393,6 +393,140 @@ Factor
 
 ---
 
+Economic Activity
+~~~~~~~~~~~~~~~~~
+
+**Syntax**
+
+.. code-block:: none
+
+   =ENVIZI.ECONOMIC_ACTIVITY(type, value, unit, country, [stateProvince], [date])
+
+**Parameters**
+
+- ``type`` – Activity type
+- ``value`` – Numeric activity value
+- ``unit`` – Unit of measurement
+- ``country`` – ISO alpha-3 country code
+- ``stateProvince`` *(optional)* – Geographic state or province
+- ``date`` *(optional)* – Activity date
+
+---
+
+**Alternate Syntax (factorId)**
+
+.. code-block:: none
+
+   =ENVIZI.ECONOMIC_ACTIVITY_BY_FACTORID(factorId, value, unit)
+
+- ``factorId`` – Factor ID from Envizi
+- ``value`` – Numeric activity value
+- ``unit`` – Unit of measurement
+
+**Outputs**
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Column
+     - Description
+   * - ``Total CO2e``
+     - The total emissions expressed as carbon dioxide equivalent (CO2e). This is the sum of all GHGs weighted by their global warming potential (GWP).
+   * - ``CO2``
+     - Direct carbon dioxide (CO2) emissions reported separately.
+   * - ``CH4``
+     - Methane (CH4) emissions reported separately.
+   * - ``N2O``
+     - Nitrous oxide (N2O) emissions reported separately.
+   * - ``HFC``
+     - Hydrofluorocarbon (HFC) emissions reported separately.
+   * - ``PFC``
+     - Perfluorocarbon (PFC) emissions reported separately.
+   * - ``SF6``
+     - Sulfur hexafluoride (SF6) emissions reported separately.
+   * - ``NF3``
+     - Nitrogen trifluoride (NF3) emissions reported separately.
+   * - ``bioCO2``
+     - Biogenic carbon dioxide (bioCO2) emissions, if applicable.
+   * - ``directCO2``
+     - Direct CO2 emissions explicitly reported when available.
+   * - ``Unit``
+     - Unit of measurement for the emissions result.
+   * - ``Description``
+     - Provides details on the factor set used in the calculation.
+   * - ``Transaction Id``
+     - Unique identifier for the calculation transaction, used for reference and auditing.
+
+---
+
+Real Estate
+~~~~~~~~~~~
+
+**Syntax**
+
+.. code-block:: none
+
+   =ENVIZI.REAL_ESTATE(type, value, unit, country, [stateProvince], [date])
+
+**Parameters**
+
+- ``type`` – Activity type
+- ``value`` – Numeric activity value
+- ``unit`` – Unit of measurement
+- ``country`` – ISO alpha-3 country code
+- ``stateProvince`` *(optional)* – Geographic state or province
+- ``date`` *(optional)* – Activity date
+
+---
+
+**Alternate Syntax (factorId)**
+
+.. code-block:: none
+
+   =ENVIZI.REAL_ESTATE_BY_FACTORID(factorId, value, unit)
+
+- ``factorId`` – Factor ID from Envizi
+- ``value`` – Numeric activity value
+- ``unit`` – Unit of measurement
+
+**Outputs**
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Column
+     - Description
+   * - ``Total CO2e``
+     - The total emissions expressed as carbon dioxide equivalent (CO2e). This is the sum of all GHGs weighted by their global warming potential (GWP).
+   * - ``CO2``
+     - Direct carbon dioxide (CO2) emissions reported separately.
+   * - ``CH4``
+     - Methane (CH4) emissions reported separately.
+   * - ``N2O``
+     - Nitrous oxide (N2O) emissions reported separately.
+   * - ``HFC``
+     - Hydrofluorocarbon (HFC) emissions reported separately.
+   * - ``PFC``
+     - Perfluorocarbon (PFC) emissions reported separately.
+   * - ``SF6``
+     - Sulfur hexafluoride (SF6) emissions reported separately.
+   * - ``NF3``
+     - Nitrogen trifluoride (NF3) emissions reported separately.
+   * - ``bioCO2``
+     - Biogenic carbon dioxide (bioCO2) emissions, if applicable.
+   * - ``directCO2``
+     - Direct CO2 emissions explicitly reported when available.
+   * - ``Unit``
+     - Unit of measurement for the emissions result.
+   * - ``Description``
+     - Provides details on the factor set used in the calculation.
+   * - ``Transaction Id``
+     - Unique identifier for the calculation transaction, used for reference and auditing.
+
+---
+
 Factor Search
 ~~~~~~~~~~~~~
 
@@ -423,133 +557,133 @@ Factor Search
 
 ---
 
-Metadata Functions
-~~~~~~~~~~~~~~~~~~
+Recommend Activity Type
+~~~~~~~~~~~~~~~~~~~~~~~
 
-These functions provide data validation dropdowns to help users select valid values for API parameters.
-
-Types
-^^^^^
+Uses AI to recommend the most appropriate activity type based on a text description. This function helps users find the correct activity type when they're unsure which one to use for their emissions calculation.
 
 **Syntax**
 
 .. code-block:: none
 
-   =ENVIZI.TYPES(apiName)
+   =ENVIZI.RECOMMEND_ACTIVITY_TYPE(search, country, [stateProvince], [date])
 
 **Parameters**
 
-- ``apiName`` – The name of the API (location, mobile, fugitive, stationary, calculation, transportationanddistribution, factor)
+- ``search`` – Text description of the activity (e.g., "electricity consumption", "diesel fuel", "air travel")
+- ``country`` – ISO alpha-3 country code
+- ``stateProvince`` *(optional)* – Geographic state or province
+- ``date`` *(optional)* – Activity date (format: YYYY-MM-DD or Excel date)
 
-**Description**
+**Outputs**
 
-Triggers a data validation dropdown for API types. Applies validation to the cell with available activity types for the specified API.
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
 
-**Example**
+   * - Column
+     - Description
+   * - ``Recommended Activity Type``
+     - The AI-recommended activity type that best matches your description
+   * - ``Confidence(%)``
+     - Confidence level of the recommendation (0-100). Higher values indicate stronger matches.
+   * - ``Description``
+     - Detailed description of the recommended activity type
+
+**Examples**
 
 .. code-block:: none
 
-   =ENVIZI.TYPES("location")
+   =ENVIZI.RECOMMEND_ACTIVITY_TYPE("electricity usage", "USA")
+   =ENVIZI.RECOMMEND_ACTIVITY_TYPE("diesel fuel for trucks", "GBR", "England", "2024-01-15")
+   =ENVIZI.RECOMMEND_ACTIVITY_TYPE("natural gas heating", "CAN", "Ontario")
+
+**Usage Tips**
+
+- Use descriptive text in the ``search`` parameter for better recommendations
+- The function returns only the top recommendation (highest confidence)
+- Use the recommended activity type in your emission calculation functions
+- Combine with ``ENVIZI.HEADERS`` using ``includeDataTypeRecommender=TRUE`` to create templates that include recommendation columns
+
+**Workflow Example**
+
+1. Use ``ENVIZI.RECOMMEND_ACTIVITY_TYPE`` to get activity type suggestions
+2. Review the confidence level and description
+3. Use the recommended activity type in functions like ``ENVIZI.LOCATION``, ``ENVIZI.STATIONARY``, etc.
 
 ---
 
-Units
-^^^^^
+Headers
+~~~~~~~
+
+Returns the input or output column headers for a specific endpoint. Useful for setting up spreadsheet templates.
 
 **Syntax**
 
 .. code-block:: none
 
-   =ENVIZI.UNITS(apiName, type)
+   =ENVIZI.HEADERS([functionName], [input], [includeDataTypeRecommender])
 
 **Parameters**
 
-- ``apiName`` – The name of the API (location, mobile, fugitive, stationary, calculation, transportationanddistribution, factor)
-- ``type`` – The type parameter to fetch units for (e.g., "electricity")
+- ``functionName`` *(optional)* – Endpoint name (location, stationary, fugitive, mobile, transportation_and_distribution, calculation, economic_activity, real_estate, factor, factor_search, recommend_activity_type). Default: calculation
+- ``input`` *(optional)* – TRUE for input headers, FALSE for output headers. Default: FALSE
+- ``includeDataTypeRecommender`` *(optional)* – TRUE to include AI-recommended activity type columns in input headers (adds "Recommended Activity Type", "Confidence(%)", and "Description" after "Activity Type"). Only applies when input=TRUE. Default: FALSE
 
-**Description**
-
-Triggers a data validation dropdown for API units. Fetches units on-demand from the API based on the specified type and applies validation to the cell.
-
-**Example**
+**Examples**
 
 .. code-block:: none
 
-   =ENVIZI.UNITS("location", "electricity")
+   =ENVIZI.HEADERS()                                    // Returns output headers for calculation endpoint
+   =ENVIZI.HEADERS("location")                          // Returns output headers for location endpoint
+   =ENVIZI.HEADERS("stationary", TRUE)                  // Returns input headers for stationary endpoint
+   =ENVIZI.HEADERS("stationary", TRUE, TRUE)            // Returns input headers with recommender columns
+   =ENVIZI.HEADERS("factor", FALSE)                     // Returns output headers for factor endpoint
+   =ENVIZI.HEADERS("recommend_activity_type", FALSE)    // Returns output headers for activity type recommender
+
+**Output**
+
+Returns a single row array containing the header names for the specified endpoint and type (input/output).
+
+**Note on Data Type Recommender**
+
+When ``includeDataTypeRecommender`` is TRUE, the input headers will include three additional columns after "Activity Type":
+
+- **Recommended Activity Type** – AI-suggested activity type based on your description
+- **Confidence(%)** – Confidence level of the recommendation (0-100)
+- **Description** – Description of the recommended activity type
+
+This is useful when you want to use the ``ENVIZI.RECOMMEND_ACTIVITY_TYPE`` function to get AI suggestions for activity types before performing calculations.
 
 ---
 
-Country
-^^^^^^^
+Headers by FactorId
+~~~~~~~~~~~~~~~~~~~
+
+Returns the input or output column headers for factorId-based calculations. Use this when working with factorId instead of type-based parameters.
 
 **Syntax**
 
 .. code-block:: none
 
-   =ENVIZI.COUNTRY(apiName)
+   =ENVIZI.HEADERS_BY_FACTORID([functionName], [input])
 
 **Parameters**
 
-- ``apiName`` – The name of the API (location, mobile, fugitive, stationary, calculation, transportationanddistribution, factor, factorsearch)
+- ``functionName`` *(optional)* – Endpoint name (location, stationary, fugitive, mobile, transportation_and_distribution, calculation, economic_activity, real_estate, factor). Default: calculation
+- ``input`` *(optional)* – TRUE for input headers, FALSE for output headers. Default: FALSE
 
-**Description**
+**Note:** The ``factor_search`` endpoint does not support factorId-based calls.
 
-Triggers a data validation dropdown for country selection. Fetches available countries from the API and applies validation to the cell with ISO alpha-3 country codes.
-
-**Example**
-
-.. code-block:: none
-
-   =ENVIZI.COUNTRY("location")
-
----
-
-State Province
-^^^^^^^^^^^^^^
-
-**Syntax**
+**Examples**
 
 .. code-block:: none
 
-   =ENVIZI.STATE_PROVINCE(apiName, country)
+   =ENVIZI.HEADERS_BY_FACTORID("location", TRUE)     // Returns: factorId, value, unit
+   =ENVIZI.HEADERS_BY_FACTORID("factor", TRUE)       // Returns: factorId, unit
+   =ENVIZI.HEADERS_BY_FACTORID("calculation")        // Returns output headers (same as regular HEADERS)
 
-**Parameters**
+**Output**
 
-- ``apiName`` – The name of the API (location, mobile, fugitive, stationary, calculation, transportationanddistribution, factor, factorsearch)
-- ``country`` – The country alpha-3 code (e.g., "USA", "CAN")
-
-**Description**
-
-Triggers a data validation dropdown for state/province selection. Fetches state/province data for the specified country and applies validation to the cell.
-
-**Example**
-
-.. code-block:: none
-
-   =ENVIZI.STATE_PROVINCE("location", "USA")
-
----
-
-Power Grid
-^^^^^^^^^^
-
-**Syntax**
-
-.. code-block:: none
-
-   =ENVIZI.POWER_GRID(apiName, country)
-
-**Parameters**
-
-- ``apiName`` – The name of the API (location, mobile, fugitive, stationary, calculation, transportationanddistribution, factor, factorsearch)
-- ``country`` – The country alpha-3 code (e.g., "USA", "CAN")
-
-**Description**
-
-Triggers a data validation dropdown for power grid selection. Fetches power grid data for the specified country and applies validation to the cell with available power grid region identifiers.
-
-**Example**
-
-.. code-block:: none
-
-   =ENVIZI.POWER_GRID("location", "USA")
+Returns a single row array containing the factorId-based header names for the specified endpoint.
+     - Factor ID from Envizi.

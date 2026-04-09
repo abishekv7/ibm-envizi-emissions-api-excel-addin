@@ -1,25 +1,32 @@
 // Copyright IBM Corp. 2025
 
 import {
+  Calculation,
+  EconomicActivity,
+  Fugitive,
   Location,
   Mobile,
-  Fugitive,
+  RealEstate,
   Stationary,
-  Calculation,
   TransportationAndDistribution,
 } from "emissions-api-sdk";
 
 import { ensureClient } from "./client";
-import { convertExcelDateToISO } from "./utils";
+import { FunctionNameType, formatRow } from "./headers-config";
+import { convertExcelDateToISO, extractSymbolFromDisplay } from "./utils";
 
 
-type ApiType =
+type ApiType = Extract<
+  FunctionNameType,
   | "location"
   | "stationary"
   | "fugitive"
   | "mobile"
   | "transportation_and_distribution"
-  | "calculation" ;
+  | "calculation"
+  | "economic_activity"
+  | "real_estate"
+>;
 
 interface BasePayload {
   value: number;
@@ -49,12 +56,18 @@ const emissionApiMap: Record<ApiType, (params: any) => Promise<any>> = {
   mobile: Mobile.calculate,
   transportation_and_distribution: TransportationAndDistribution.calculate,
   calculation: Calculation.calculate,
-  
+  economic_activity: EconomicActivity.calculate,
+  real_estate: RealEstate.calculate,
 };
 
 function buildLocation(payload: PayloadWithType, apiType: ApiType): Record<string, string> | undefined {
   const { country, stateProvince, powerGrid } = payload;
-  const location: any = { country };
+  
+  // Extract country alpha3 from display format
+  // "United States (USA)" → "USA" or "USA" → "USA"
+  const countryCode = extractSymbolFromDisplay(country) || country;
+  
+  const location: any = { country: countryCode };
 
   if (stateProvince) location.stateProvince = stateProvince;
   if ((apiType === "location" || apiType === "calculation") && powerGrid) {
@@ -66,7 +79,15 @@ function buildLocation(payload: PayloadWithType, apiType: ApiType): Record<strin
 
 function buildApiParams(apiType: ApiType, payload: Payload): any {
   const { value, unit } = payload;
-  const activity: any = { value, ...(unit ? { unit } : {}) };
+  
+  // Extract unit symbol from display format
+  // "kilogram (kg)" → "kg" or "kg" → "kg"
+  const unitSymbol = unit ? extractSymbolFromDisplay(unit) : undefined;
+  
+  const activity: any = {
+    value,
+    ...(unitSymbol ? { unit: unitSymbol } : {})
+  };
 
   if ("type" in payload) {
     activity.type = payload.type;
@@ -89,23 +110,8 @@ function buildApiParams(apiType: ApiType, payload: Payload): any {
   return apiParams;
 }
 
-function formatResponse(response: any): (string | number | null)[][] {
-  
-  return [[
-    response.totalCO2e ?? 0,
-    response.CO2 ?? 0,
-    response.CH4 ?? 0,
-    response.N2O ?? 0,
-    response.HFC ?? 0,
-    response.PFC ?? 0,
-    response.SF6 ?? 0,
-    response.NF3 ?? 0,
-    response.bioCO2 ?? 0,
-    response.indirectCO2e ?? 0,
-    response.unit ?? "",
-    response.description ?? "",
-    response.transactionId ?? "",
-  ]];
+function formatResponse(response: any, apiType: ApiType): (string | number)[][] {
+  return [formatRow(response, apiType)];
 }
 
 export async function genericApiCall(apiType: ApiType, payload: Payload): Promise<any[][]> {
@@ -127,7 +133,7 @@ export async function genericApiCall(apiType: ApiType, payload: Payload): Promis
       throw new CustomFunctions.Error(CustomFunctions.ErrorCode.notAvailable, "Invalid API response");
     }
 
-    return formatResponse(response);
+    return formatResponse(response, apiType);
   } catch (e: any) {
     if (e instanceof CustomFunctions.Error) throw e;
 

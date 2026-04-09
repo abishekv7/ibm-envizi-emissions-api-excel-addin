@@ -1,9 +1,8 @@
 // Copyright IBM Corp. 2025
-import * as api from "../src/functions/functions"
-import { genericApiCall } from "../src/functions/generic-api-call";
-import { factorSearch } from "../src/functions/factorSearchHelper";
 import { factorHelper } from "../src/functions/factorHelper";
-import { handleTypesFunction } from "../src/functions/types-handler";
+import { factorSearch } from "../src/functions/factorSearchHelper";
+import * as api from "../src/functions/functions";
+import { genericApiCall } from "../src/functions/generic-api-call";
 
 jest.mock("../src/functions/generic-api-call", () => ({
   genericApiCall: jest.fn(),
@@ -15,10 +14,6 @@ jest.mock("../src/functions/factorSearchHelper", () => ({
 
 jest.mock("../src/functions/factorHelper", () => ({
   factorHelper: jest.fn(),
-}));
-
-jest.mock("../src/functions/types-handler", () => ({
-  handleTypesFunction: jest.fn(),
 }));
 
 
@@ -164,6 +159,48 @@ describe("emissions custom functions", () => {
       args: [333, 444, "kg"],
       expectedPayload: { factorId: 333, value: 444, unit: "kg" },
     },
+    {
+      fn: api.economic_activity,
+      name: "economic_activity",
+      apiType: "economic_activity",
+      args: ["office", 1000, "sqft", "USA", "CA", "2024-01-01"],
+      expectedPayload: {
+        type: "office",
+        value: 1000,
+        unit: "sqft",
+        country: "USA",
+        stateProvince: "CA",
+        date: "2024-01-01",
+      },
+    },
+    {
+      fn: api.economic_activity_by_factorId,
+      name: "economic_activity_by_factorId",
+      apiType: "economic_activity",
+      args: [555, 2000, "sqft"],
+      expectedPayload: { factorId: 555, value: 2000, unit: "sqft" },
+    },
+    {
+      fn: api.real_estate,
+      name: "real_estate",
+      apiType: "real_estate",
+      args: ["building", 5000, "sqm", "USA", "NY", "2024-01-01"],
+      expectedPayload: {
+        type: "building",
+        value: 5000,
+        unit: "sqm",
+        country: "USA",
+        stateProvince: "NY",
+        date: "2024-01-01",
+      },
+    },
+    {
+      fn: api.real_estate_by_factorId,
+      name: "real_estate_by_factorId",
+      apiType: "real_estate",
+      args: [666, 3000, "sqm"],
+      expectedPayload: { factorId: 666, value: 3000, unit: "sqm" },
+    },
   ];
 
   test.each(commonTests)("$name calls genericApiCall correctly", async ({ fn, apiType, args, expectedPayload }) => {
@@ -210,69 +247,5 @@ describe("factor-related functions", () => {
     const result = await api.factor_by_id(123, "kg");
     expect(mockedFactorHelper).toHaveBeenCalledWith(123, "kg");
     expect(result).toEqual([["helper-result"]]);
-  });
-});
-
-describe("types function", () => {
-  const mockedHandleTypesFunction = handleTypesFunction as jest.MockedFunction<typeof handleTypesFunction>;
-
-  beforeEach(() => {
-    mockedHandleTypesFunction.mockResolvedValue("location");
-  });
-
-  it("should call handleTypesFunction with correct arguments", async () => {
-    const mockInvocation = {
-      address: "Sheet1!A1",
-    } as CustomFunctions.Invocation;
-
-    const result = await api.types("location", mockInvocation);
-
-    expect(mockedHandleTypesFunction).toHaveBeenCalledWith("location", mockInvocation);
-    expect(result).toBe("location");
-  });
-
-  it("should handle different API names", async () => {
-    const mockInvocation = {
-      address: "Sheet1!B2",
-    } as CustomFunctions.Invocation;
-
-    mockedHandleTypesFunction.mockResolvedValue("mobile");
-    const result = await api.types("mobile", mockInvocation);
-
-    expect(mockedHandleTypesFunction).toHaveBeenCalledWith("mobile", mockInvocation);
-    expect(result).toBe("mobile");
-  });
-
-  it("should handle factor API name", async () => {
-    const mockInvocation = {
-      address: "Sheet1!C3",
-    } as CustomFunctions.Invocation;
-
-    mockedHandleTypesFunction.mockResolvedValue("factor");
-    const result = await api.types("factor", mockInvocation);
-
-    expect(mockedHandleTypesFunction).toHaveBeenCalledWith("factor", mockInvocation);
-    expect(result).toBe("factor");
-  });
-
-  it("should propagate errors from handleTypesFunction", async () => {
-    const mockInvocation = {
-      address: "Sheet1!A1",
-    } as CustomFunctions.Invocation;
-
-    mockedHandleTypesFunction.mockRejectedValue(new Error("Validation error"));
-
-    await expect(api.types("invalid", mockInvocation)).rejects.toThrow("Validation error");
-  });
-
-  it("should pass invocation object correctly", async () => {
-    const mockInvocation = {
-      address: "Sheet2!D10",
-      parameterAddresses: [],
-    } as CustomFunctions.Invocation;
-
-    await api.types("calculation", mockInvocation);
-
-    expect(mockedHandleTypesFunction).toHaveBeenCalledWith("calculation", mockInvocation);
   });
 });

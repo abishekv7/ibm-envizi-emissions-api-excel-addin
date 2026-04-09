@@ -1,4 +1,4 @@
-// Copyright IBM Corp. 2025
+// Copyright IBM Corp. 2025, 2026
 
 /* eslint-disable no-undef */
 
@@ -25,8 +25,11 @@ module.exports = async (env, options) => {
     devtool: "source-map",
     entry: {
       polyfill: ["core-js/stable", "regenerator-runtime/runtime"],
-      taskpane: ["./src/taskpane/taskpane.ts", "./src/taskpane/taskpane.html"],
+      taskpane: ["./src/taskpane/index.tsx"],
+      login: ["./src/login/login.ts"],
+      "login-callback": ["./src/login/login-callback.ts"],
       functions: ["./src/functions/functions.ts"],
+      commands: ["./src/commands/commands-entry.ts"],
     },
     output: {
       path: path.resolve(__dirname, "dist"),
@@ -34,20 +37,37 @@ module.exports = async (env, options) => {
       clean: true,
     },
     resolve: {
-      extensions: [".ts", ".html", ".js"],
+      extensions: [".ts", ".html", ".js", ".jsx", ".tsx"],
       fallback: {
         buffer: require.resolve("buffer/"),
       },
     },
-
+    optimization: {
+      runtimeChunk: "single", // create a single runtime file
+      splitChunks: {
+        chunks: "all", // make chunks shared to avoid duplication
+      },
+    },
     module: {
       rules: [
         {
-          test: /\.ts$/,
+          test: /\.(ts|tsx)$/,
           exclude: /node_modules/,
           use: {
             loader: "babel-loader",
+            options: {
+              targets: { browsers: "defaults", node: "current" },
+              presets: [
+                ["@babel/preset-env"],
+                ["@babel/preset-react", { runtime: "automatic" }],
+                ["@babel/preset-typescript"],
+              ],
+            },
           },
+        },
+        {
+          test: /\.css$/,
+          use: ["style-loader", "css-loader"],
         },
         {
           test: /\.html$/,
@@ -70,7 +90,22 @@ module.exports = async (env, options) => {
       new HtmlWebpackPlugin({
         filename: "taskpane.html",
         template: "./src/taskpane/taskpane.html",
-        chunks: ["polyfill", "taskpane", "functions"],
+        chunks: ["polyfill", "taskpane", "functions", "commands"],
+      }),
+      new HtmlWebpackPlugin({
+        filename: "login.html",
+        template: "./src/login/login.html",
+        chunks: ["login"],
+      }),
+      new HtmlWebpackPlugin({
+        filename: "login-callback.html",
+        template: "./src/login/login-callback.html",
+        chunks: ["login-callback"],
+      }),
+      new HtmlWebpackPlugin({
+        filename: "commands/notification.html",
+        template: "./src/commands/notification.html",
+        chunks: [],
       }),
       new CopyWebpackPlugin({
         patterns: [
@@ -101,6 +136,10 @@ module.exports = async (env, options) => {
         Buffer: ["buffer", "Buffer"],
       }),
     ],
+    performance: {
+      maxEntrypointSize: 614400,
+      maxAssetSize: 1048576,
+    },
     devServer: {
       static: {
         directory: path.join(__dirname, "dist"),
