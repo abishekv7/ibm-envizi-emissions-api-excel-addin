@@ -27,11 +27,10 @@ import {
   saveApiCredentialsToStorage,
   setApiCredentials,
 } from "../common/credentials";
-import { getEnvType } from "../common/env";
-import { ensureClient, resetClient } from "../functions/client";
-import { refreshSheetOnLogin } from "../functions/metadata-utils";
 import { loadAndPopulateApiTypes } from "../functions/api-types-loader";
 import { loadAndPopulateAreaData } from "../functions/area-loader";
+import { ensureClient, resetClient } from "../functions/client";
+import { refreshSheetOnLogin } from "../functions/metadata-utils";
 
 accordionDefinition.define(FluentDesignSystem.registry);
 accordionItemDefinition.define(FluentDesignSystem.registry);
@@ -45,9 +44,7 @@ FieldDefinition.define(FluentDesignSystem.registry);
 
 /* global console, document, Excel, Office */
 
-const apiHomeUrls = {
-  prod: "https://www.app.ibm.com/envizi/emissions-api-home",
-};
+const apiHomeUrl = "https://www.app.ibm.com/envizi/emissions-api-home";
 
 let getStartedClicked = false;
 let pageElements: HTMLElement[];
@@ -88,7 +85,7 @@ Office.onReady(() => {
 });
 
 function getOverviewDashboardUrl(): string {
-  return `${apiHomeUrls[getEnvType()]}/overview`;
+  return `${apiHomeUrl}/overview`;
 }
 
 function initGetStartedPage(): void {

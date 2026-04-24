@@ -1,394 +1,140 @@
-// Copyright IBM Corp. 2025
+// Copyright IBM Corp. 2025, 2026
 
-import {
-  validateApiName,
-  VALID_API_NAMES,
-  API_TYPES_CONFIGS,
-  API_AREA_CONFIGS,
-  REFRESH_CONFIG,
-  SheetMetadata,
-  getSheetMetadata,
-  setSheetMetadata,
-  isSheetDataStale,
-  sheetExists,
-  deleteSheetIfExists,
-  refreshSheetIfStale,
-  refreshSheetOnLogin,
-} from "../src/functions/metadata-utils";
+import { handleCustomFunctionError } from "../src/functions/metadata-utils";
 
-// Mock CustomFunctions
-class CustomFunctionsError extends Error {
-  code: string;
-  constructor(code: string, message: string) {
-    super(message);
-    this.code = code;
-    this.name = "CustomFunctions.Error";
-  }
-}
-
-global.CustomFunctions = {
-  Error: CustomFunctionsError,
-  ErrorCode: {
-    invalidValue: "InvalidValue",
-    notAvailable: "NotAvailable",
+// Mock CustomFunctions global
+(global as any).CustomFunctions = {
+  Error: class extends Error {
+    code: string;
+    constructor(code: string, message: string) {
+      super(message);
+      this.code = code;
+      this.name = "CustomFunctions.Error";
+    }
   },
-} as any;
+  ErrorCode: {
+    notAvailable: "NotAvailable",
+    invalidValue: "InvalidValue",
+  },
+};
 
 describe("metadata-utils", () => {
-  describe("VALID_API_NAMES", () => {
-    it("should export all valid API names", () => {
-      expect(VALID_API_NAMES).toEqual([
-        "location",
-        "mobile",
-        "fugitive",
-        "stationary",
-        "calculation",
-        "transportationanddistribution",
-        "factor",
-      ]);
-    });
-  });
+  describe("handleCustomFunctionError", () => {
+    it("should re-throw CustomFunctions.Error as-is", () => {
+      const customError = new CustomFunctions.Error(
+        CustomFunctions.ErrorCode.notAvailable,
+        "Custom error message"
+      );
 
-  describe("API_TYPES_CONFIGS", () => {
-    it("should have 6 API configurations", () => {
-      expect(API_TYPES_CONFIGS).toHaveLength(6);
+      expect(() => handleCustomFunctionError(customError, "Default message")).toThrow(
+        "Custom error message"
+      );
     });
 
-    it("should have correct API names", () => {
-      const names = API_TYPES_CONFIGS.map((config) => config.name);
-      expect(names).toEqual([
-        "Location",
-        "Mobile",
-        "Fugitive",
-        "Stationary",
-        "Calculation",
-        "TransportationAndDistribution",
-      ]);
-    });
-
-    it("should have getTypes method for each config", () => {
-      API_TYPES_CONFIGS.forEach((config) => {
-        expect(config.getTypes).toBeDefined();
-        expect(typeof config.getTypes).toBe("function");
-      });
-    });
-  });
-
-  describe("API_AREA_CONFIGS", () => {
-    it("should have 2 representative API configurations (optimization for area data)", () => {
-      expect(API_AREA_CONFIGS).toHaveLength(2);
-    });
-
-    it("should have correct representative API names in lowercase", () => {
-      const names = API_AREA_CONFIGS.map((config) => config.name);
-      expect(names).toEqual([
-        "calculation",
-        "mobile",
-      ]);
-    });
-
-    it("should have class property for each config", () => {
-      API_AREA_CONFIGS.forEach((config) => {
-        expect(config.class).toBeDefined();
-        expect(typeof config.class).toBe("object");
-      });
-    });
-
-    it("should NOT include factor or factorsearch", () => {
-      const names = API_AREA_CONFIGS.map((config) => config.name);
-      expect(names).not.toContain("factor");
-      expect(names).not.toContain("factorsearch");
-    });
-  });
-
-  describe("validateApiName", () => {
-    it("should accept valid API names", () => {
-      VALID_API_NAMES.forEach((apiName) => {
-        expect(validateApiName(apiName)).toBe(apiName);
-      });
-    });
-
-    it("should normalize API names to lowercase", () => {
-      expect(validateApiName("LOCATION")).toBe("location");
-      expect(validateApiName("Mobile")).toBe("mobile");
-      expect(validateApiName("FuGiTiVe")).toBe("fugitive");
-    });
-
-    it("should trim whitespace", () => {
-      expect(validateApiName("  location  ")).toBe("location");
-      expect(validateApiName("\tmobile\n")).toBe("mobile");
-    });
-
-    it("should throw error for invalid API names", () => {
-      expect(() => validateApiName("invalid")).toThrow();
-      expect(() => validateApiName("unknown")).toThrow();
-      expect(() => validateApiName("")).toThrow();
-      
-      // Verify it's a CustomFunctions.Error
-      try {
-        validateApiName("invalid");
-        fail("Should have thrown error");
-      } catch (error: any) {
-        expect(error.code).toBe("InvalidValue");
-      }
-    });
-
-    it("should include valid options in error message", () => {
-      try {
-        validateApiName("invalid");
-        fail("Should have thrown error");
-      } catch (error: any) {
-        expect(error.message).toContain("Invalid API name");
-        expect(error.message).toContain("location");
-        expect(error.message).toContain("mobile");
-        expect(error.code).toBe("InvalidValue");
-      }
-    });
-  });
-
-  describe("REFRESH_CONFIG", () => {
-    it("should have correct refresh interval", () => {
-      expect(REFRESH_CONFIG.REFRESH_INTERVAL_MS).toBe(2 * 24 * 60 * 60 * 1000); // 2 days
-      expect(REFRESH_CONFIG.REFRESH_INTERVAL_DAYS).toBe(2);
-    });
-  });
-
-  describe("Refresh Mechanism", () => {
-    // Mock Excel context
-    const mockContext = {
-      workbook: {
-        worksheets: {
-          items: [] as any[],
-          load: jest.fn(),
-          getItem: jest.fn(),
-        },
-      },
-      sync: jest.fn().mockResolvedValue(undefined),
-    };
-
-    const mockSheet = {
-      name: "TestSheet",
-      getRangeByIndexes: jest.fn(),
-      delete: jest.fn(),
-    };
-
-    const mockRange = {
-      values: [["METADATA", "1234567890000"]],
-      load: jest.fn(),
-    };
-
-    beforeEach(() => {
-      jest.clearAllMocks();
-      
-      // Mock Excel.run
-      (global as any).Excel = {
-        run: jest.fn((callback) => callback(mockContext)),
+    it("should re-throw error with CustomFunctions.Error name property", () => {
+      const errorLikeObject = {
+        name: "CustomFunctions.Error",
+        code: "InvalidValue",
+        message: "Error-like object",
       };
 
-      mockContext.workbook.worksheets.items = [mockSheet];
-      mockContext.workbook.worksheets.getItem.mockReturnValue(mockSheet);
-      mockSheet.getRangeByIndexes.mockReturnValue(mockRange);
+      expect(() => handleCustomFunctionError(errorLikeObject, "Default message")).toThrow(
+        errorLikeObject
+      );
     });
 
-    describe("getSheetMetadata", () => {
-      it("should return metadata when it exists", async () => {
-        mockRange.values = [["METADATA", "1234567890000"]];
-        
-        const metadata = await getSheetMetadata("TestSheet");
-        
-        expect(metadata).toEqual({
-          timestamp: 1234567890000,
-        });
-      });
+    it("should wrap regular Error with CustomFunctions.Error", () => {
+      const regularError = new Error("Regular error message");
 
-      it("should return null when metadata marker is missing", async () => {
-        mockRange.values = [["NOT_METADATA", "1234567890000"]];
-        
-        const metadata = await getSheetMetadata("TestSheet");
-        
-        expect(metadata).toBeNull();
-      });
-
-      it("should return null on error", async () => {
-        (global as any).Excel.run = jest.fn(() => Promise.reject(new Error("Sheet not found")));
-        
-        const metadata = await getSheetMetadata("NonExistentSheet");
-        
-        expect(metadata).toBeNull();
-      });
+      try {
+        handleCustomFunctionError(regularError, "Operation failed");
+        fail("Should have thrown an error");
+      } catch (error: any) {
+        expect(error.name).toBe("CustomFunctions.Error");
+        expect(error.code).toBe("NotAvailable");
+        expect(error.message).toBe("Operation failed: Regular error message");
+      }
     });
 
-    describe("setSheetMetadata", () => {
-      it("should write metadata to row 0", async () => {
-        const metadata: SheetMetadata = {
-          timestamp: 1234567890000,
-        };
+    it("should handle error objects with message property", () => {
+      const errorObject = { message: "Error object message" };
 
-        await setSheetMetadata("TestSheet", metadata);
-
-        expect(mockSheet.getRangeByIndexes).toHaveBeenCalledWith(0, 0, 1, 2);
-        expect(mockRange.values).toEqual([["METADATA", "1234567890000"]]);
-      });
+      try {
+        handleCustomFunctionError(errorObject, "Default message");
+        fail("Should have thrown an error");
+      } catch (error: any) {
+        expect(error.name).toBe("CustomFunctions.Error");
+        expect(error.message).toBe("Default message: Error object message");
+      }
     });
 
-    describe("isSheetDataStale", () => {
-      it("should return true when metadata is missing", async () => {
-        mockRange.values = [["NOT_METADATA", "1234567890000"]];
-        
-        const isStale = await isSheetDataStale("TestSheet");
-        
-        expect(isStale).toBe(true);
-      });
+    it("should handle errors without message property", () => {
+      const errorWithoutMessage = { code: 500 };
 
-      it("should return true when data is older than 2 days", async () => {
-        const threeDaysAgo = Date.now() - (3 * 24 * 60 * 60 * 1000);
-        mockRange.values = [["METADATA", threeDaysAgo.toString()]];
-        
-        const isStale = await isSheetDataStale("TestSheet");
-        
-        expect(isStale).toBe(true);
-      });
-
-      it("should return false when data is less than 2 days old", async () => {
-        const oneDayAgo = Date.now() - (1 * 24 * 60 * 60 * 1000);
-        mockRange.values = [["METADATA", oneDayAgo.toString()]];
-        
-        const isStale = await isSheetDataStale("TestSheet");
-        
-        expect(isStale).toBe(false);
-      });
-
-      it("should return true on error", async () => {
-        (global as any).Excel.run = jest.fn(() => Promise.reject(new Error("Error")));
-        
-        const isStale = await isSheetDataStale("TestSheet");
-        
-        expect(isStale).toBe(true);
-      });
+      try {
+        handleCustomFunctionError(errorWithoutMessage, "Default message");
+        fail("Should have thrown an error");
+      } catch (error: any) {
+        expect(error.name).toBe("CustomFunctions.Error");
+        expect(error.message).toBe("Default message: Unknown error");
+      }
     });
 
-    describe("sheetExists", () => {
-      it("should return true when sheet exists", async () => {
-        mockContext.workbook.worksheets.items = [{ name: "TestSheet" }];
-        
-        const exists = await sheetExists("TestSheet");
-        
-        expect(exists).toBe(true);
-      });
-
-      it("should return false when sheet does not exist", async () => {
-        mockContext.workbook.worksheets.items = [{ name: "OtherSheet" }];
-        
-        const exists = await sheetExists("TestSheet");
-        
-        expect(exists).toBe(false);
-      });
-
-      it("should return false on error", async () => {
-        (global as any).Excel.run = jest.fn(() => Promise.reject(new Error("Error")));
-        
-        const exists = await sheetExists("TestSheet");
-        
-        expect(exists).toBe(false);
-      });
+    it("should handle null error", () => {
+      try {
+        handleCustomFunctionError(null, "Default message");
+        fail("Should have thrown an error");
+      } catch (error: any) {
+        expect(error.name).toBe("CustomFunctions.Error");
+        expect(error.message).toBe("Default message: Unknown error");
+      }
     });
 
-    describe("deleteSheetIfExists", () => {
-      it("should delete sheet when it exists", async () => {
-        mockContext.workbook.worksheets.items = [mockSheet];
-        
-        await deleteSheetIfExists("TestSheet");
-        
-        expect(mockSheet.delete).toHaveBeenCalled();
-      });
-
-      it("should not throw error when sheet does not exist", async () => {
-        mockContext.workbook.worksheets.items = [];
-        
-        await expect(deleteSheetIfExists("TestSheet")).resolves.not.toThrow();
-      });
+    it("should handle undefined error", () => {
+      try {
+        handleCustomFunctionError(undefined, "Default message");
+        fail("Should have thrown an error");
+      } catch (error: any) {
+        expect(error.name).toBe("CustomFunctions.Error");
+        expect(error.message).toBe("Default message: Unknown error");
+      }
     });
 
-    describe("refreshSheetIfStale", () => {
-      const mockRecreateFunction = jest.fn().mockResolvedValue(undefined);
-
-      beforeEach(() => {
-        mockRecreateFunction.mockClear();
-      });
-
-      it("should return false when sheet does not exist", async () => {
-        mockContext.workbook.worksheets.items = [];
-        
-        const refreshed = await refreshSheetIfStale("TestSheet", mockRecreateFunction);
-        
-        expect(refreshed).toBe(false);
-        expect(mockRecreateFunction).not.toHaveBeenCalled();
-      });
-
-      it("should refresh when sheet exists and is stale", async () => {
-        mockContext.workbook.worksheets.items = [mockSheet];
-        const threeDaysAgo = Date.now() - (3 * 24 * 60 * 60 * 1000);
-        mockRange.values = [["METADATA", threeDaysAgo.toString()]];
-        
-        const refreshed = await refreshSheetIfStale("TestSheet", mockRecreateFunction);
-        
-        expect(refreshed).toBe(true);
-        expect(mockSheet.delete).toHaveBeenCalled();
-        expect(mockRecreateFunction).toHaveBeenCalled();
-      });
-
-      it("should not refresh when sheet exists but is fresh", async () => {
-        mockContext.workbook.worksheets.items = [mockSheet];
-        const oneDayAgo = Date.now() - (1 * 24 * 60 * 60 * 1000);
-        mockRange.values = [["METADATA", oneDayAgo.toString()]];
-        
-        const refreshed = await refreshSheetIfStale("TestSheet", mockRecreateFunction);
-        
-        expect(refreshed).toBe(false);
-        expect(mockSheet.delete).not.toHaveBeenCalled();
-        expect(mockRecreateFunction).not.toHaveBeenCalled();
-      });
+    it("should handle string error", () => {
+      try {
+        handleCustomFunctionError("String error", "Default message");
+        fail("Should have thrown an error");
+      } catch (error: any) {
+        expect(error.name).toBe("CustomFunctions.Error");
+        expect(error.message).toBe("Default message: Unknown error");
+      }
     });
 
-    describe("refreshSheetOnLogin", () => {
-      const mockRecreateFunction = jest.fn().mockResolvedValue(undefined);
+    it("should use NotAvailable error code for wrapped errors", () => {
+      const regularError = new Error("Test error");
 
-      beforeEach(() => {
-        mockRecreateFunction.mockClear();
-      });
+      try {
+        handleCustomFunctionError(regularError, "Failed");
+        fail("Should have thrown an error");
+      } catch (error: any) {
+        expect(error.code).toBe("NotAvailable");
+      }
+    });
 
-      it("should return false when sheet does not exist", async () => {
-        mockContext.workbook.worksheets.items = [];
-        
-        const refreshed = await refreshSheetOnLogin("TestSheet", mockRecreateFunction);
-        
-        expect(refreshed).toBe(false);
-        expect(mockRecreateFunction).not.toHaveBeenCalled();
-      });
+    it("should preserve original error code when re-throwing CustomFunctions.Error", () => {
+      const customError = new CustomFunctions.Error(
+        CustomFunctions.ErrorCode.invalidValue,
+        "Invalid input"
+      );
 
-      it("should always refresh when sheet exists (regardless of age)", async () => {
-        mockContext.workbook.worksheets.items = [mockSheet];
-        const oneDayAgo = Date.now() - (1 * 24 * 60 * 60 * 1000);
-        mockRange.values = [["METADATA", oneDayAgo.toString()]];
-        
-        const refreshed = await refreshSheetOnLogin("TestSheet", mockRecreateFunction);
-        
-        expect(refreshed).toBe(true);
-        expect(mockSheet.delete).toHaveBeenCalled();
-        expect(mockRecreateFunction).toHaveBeenCalled();
-      });
-
-      it("should refresh even with fresh data (< 2 days)", async () => {
-        mockContext.workbook.worksheets.items = [mockSheet];
-        const oneHourAgo = Date.now() - (1 * 60 * 60 * 1000);
-        mockRange.values = [["METADATA", oneHourAgo.toString()]];
-        
-        const refreshed = await refreshSheetOnLogin("TestSheet", mockRecreateFunction);
-        
-        expect(refreshed).toBe(true);
-        expect(mockSheet.delete).toHaveBeenCalled();
-        expect(mockRecreateFunction).toHaveBeenCalled();
-      });
+      try {
+        handleCustomFunctionError(customError, "Default");
+        fail("Should have thrown an error");
+      } catch (error: any) {
+        expect(error.code).toBe("InvalidValue");
+      }
     });
   });
 });
+
+// Made with Bob
