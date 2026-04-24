@@ -81,9 +81,8 @@ jest.mock("../../../common/env", () => ({
   getOverviewDashboardUrl: jest.fn(
     () => "https://www-dev.app.ibm.com/envizi/emissions-api-home/overview"
   ),
-  getEnviziExcelAddInOverviewUrl: jest.fn(
-    () => "https://pentest.envizi.ibm.com/emissions/excel-add-in-overview"
-  ),
+  getAccountUsageUrl: jest.fn(() => "https://us006t.envizi.com/emissions/account-usage"),
+  getEnableEnviziLogin: jest.fn(() => true),
 }));
 
 // Mock window.open
@@ -119,7 +118,7 @@ describe("AccountTab - API Credentials Tests", () => {
       expect(screen.getByLabelText(/Organization ID/i)).toBeInTheDocument();
     });
 
-    it("should render View dashboard button", () => {
+    it("should render View account and usage button", () => {
       render(<AccountTab />);
       expect(screen.getByRole("button", { name: /View dashboard/i })).toBeInTheDocument();
     });
@@ -162,7 +161,7 @@ describe("AccountTab - API Credentials Tests", () => {
     });
   });
 
-  describe("View Dashboard Button", () => {
+  describe("View Account and Usage Button", () => {
     it("should have primary appearance", () => {
       render(<AccountTab />);
       const button = screen.getByRole("button", { name: /View dashboard/i });
@@ -201,7 +200,7 @@ describe("AccountTab - API Credentials Tests", () => {
       );
     });
 
-    it("should allow clicking View dashboard multiple times", () => {
+    it("should allow clicking View account and usage multiple times", () => {
       render(<AccountTab />);
       const button = screen.getByRole("button", { name: /View dashboard/i });
 
@@ -344,7 +343,7 @@ describe("AccountTab - User Credentials Tests", () => {
       render(<AccountTab />);
       expect(screen.getByLabelText(/^Name$/i)).toBeInTheDocument();
       expect(screen.getByLabelText(/^Username$/i)).toBeInTheDocument();
-      expect(screen.getByLabelText(/Account type/i)).toBeInTheDocument();
+      expect(screen.getByLabelText(/Subscription type/i)).toBeInTheDocument();
     });
 
     it("should not render API credential fields", () => {
@@ -370,7 +369,7 @@ describe("AccountTab - User Credentials Tests", () => {
 
     it("should display account type", () => {
       render(<AccountTab />);
-      const accountTypeInput = screen.getByLabelText(/Account type/i) as HTMLInputElement;
+      const accountTypeInput = screen.getByLabelText(/Subscription type/i) as HTMLInputElement;
       expect(accountTypeInput.value).toBe("Premium");
     });
 
@@ -378,7 +377,7 @@ describe("AccountTab - User Credentials Tests", () => {
       render(<AccountTab />);
       const nameInput = screen.getByLabelText(/^Name$/i) as HTMLInputElement;
       const usernameInput = screen.getByLabelText(/^Username$/i) as HTMLInputElement;
-      const accountTypeInput = screen.getByLabelText(/Account type/i) as HTMLInputElement;
+      const accountTypeInput = screen.getByLabelText(/Subscription type/i) as HTMLInputElement;
 
       expect(nameInput).toHaveAttribute("readonly");
       expect(usernameInput).toHaveAttribute("readonly");
@@ -387,9 +386,9 @@ describe("AccountTab - User Credentials Tests", () => {
   });
 
   describe("Buttons with User Credentials", () => {
-    it("should render View dashboard button", () => {
+    it("should render View account and usage button", () => {
       render(<AccountTab />);
-      expect(screen.getByRole("button", { name: /View dashboard/i })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /View account and usage/i })).toBeInTheDocument();
     });
 
     it("should render Logout button", () => {
@@ -406,33 +405,31 @@ describe("AccountTab - User Credentials Tests", () => {
       expect(mockLogout).toHaveBeenCalledTimes(1);
     });
 
-    it("should open Envizi plugins overview URL for token-based auth", () => {
+    it("should open account and usage page", () => {
       render(<AccountTab />);
-      const button = screen.getByRole("button", { name: /View dashboard/i });
+      const button = screen.getByRole("button", { name: /View account and usage/i });
 
       fireEvent.click(button);
 
       expect(mockWindowOpen).toHaveBeenCalledWith(
-        "https://pentest.envizi.ibm.com/emissions/excel-add-in-overview",
+        "https://us006t.envizi.com/emissions/account-usage",
         "_blank",
         "noopener"
       );
     });
 
     it("should open correct Envizi URL for production environment with token auth", () => {
-      const { getEnvType, getEnviziExcelAddInOverviewUrl } = require("../../../common/env");
+      const { getEnvType, getAccountUsageUrl } = require("../../../common/env");
       getEnvType.mockReturnValue("prod");
-      getEnviziExcelAddInOverviewUrl.mockReturnValue(
-        "https://envizi.ibm.com/emissions/excel-add-in-overview"
-      );
+      getAccountUsageUrl.mockReturnValue("https://us006t.envizi.com/emissions/account-usage");
 
       render(<AccountTab />);
-      const button = screen.getByRole("button", { name: /View dashboard/i });
+      const button = screen.getByRole("button", { name: /View account and usage/i });
 
       fireEvent.click(button);
 
       expect(mockWindowOpen).toHaveBeenCalledWith(
-        "https://envizi.ibm.com/emissions/excel-add-in-overview",
+        "https://us006t.envizi.com/emissions/account-usage",
         "_blank",
         "noopener"
       );
@@ -471,5 +468,3 @@ describe("AccountTab - User Credentials Tests", () => {
     });
   });
 });
-
-// Made with Bob

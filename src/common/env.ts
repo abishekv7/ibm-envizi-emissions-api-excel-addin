@@ -79,6 +79,10 @@ export function getEnviziExcelAddInOverviewUrl(): string {
   return `${getEnviziApiHomeUrl()}/excel-add-in-overview`;
 }
 
+export function getAccountUsageUrl(): string {
+  return `${getEnviziApiHomeUrl()}/account-usage`;
+}
+
 export function getEnviziUiOrigin(envType?: EnvType): string {
   const override = window.localStorage.getItem("enviziUiOrigin");
   return override || enviziUiOrigins[envType || getEnvType()];
@@ -100,4 +104,16 @@ export function getEnableEnviziLogin(): boolean {
     window.enableEnviziLogin = enableOverride ? enableOverride === "true" : true;
   }
   return window.enableEnviziLogin;
+}
+
+/**
+ * Gets the IBM Store URL for purchasing the Envizi Excel add-in
+ * This function can be extended to support language/locale-specific URLs in the future
+ */
+export function getBuyNowUrl(): string {
+  return "https://www.ibm.com/store/en/us/products/EIDSBEJC";
+}
+
+export function getPricingPageUrl(): string {
+  return "https://www.ibm.com/products/envizi/pricing";
 }

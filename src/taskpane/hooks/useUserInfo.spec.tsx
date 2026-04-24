@@ -1,7 +1,4 @@
-/*
- * Copyright IBM Corp. 2026
- * Licensed Materials - Property of IBM
- */
+// Copyright IBM Corp. 2026
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { renderHook, waitFor } from "@testing-library/react";
@@ -48,9 +45,8 @@ describe("useUserInfo", () => {
             emailAddress: "john.doe@example.com",
           },
         },
-        user: {
-          associateName: "Test Organization",
-          rolesMeta: "admin",
+        currentAssociate: {
+          name: "Test Organization",
         },
       },
     },
@@ -112,9 +108,9 @@ describe("useUserInfo", () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
     expect(mockedAxios.post).toHaveBeenCalledWith(
-      `${getEnviziGraphQLUrl()}/ui/graphql`,
+      `${getEnviziGraphQLUrl()}/de/graphql`,
       {
-        query: expect.stringContaining("query User"),
+        query: expect.stringContaining("query UserInfo"),
       },
       {
         headers: {
@@ -229,9 +225,8 @@ describe("useUserInfo", () => {
               emailAddress: "jane.smith@example.com",
             },
           },
-          user: {
-            associateName: "Another Org",
-            rolesMeta: "user",
+          currentAssociate: {
+            name: "Another Org",
           },
         },
       },

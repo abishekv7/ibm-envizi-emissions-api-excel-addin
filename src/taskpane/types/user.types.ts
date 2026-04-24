@@ -1,7 +1,4 @@
-/*
- * Copyright IBM Corp. 2026
- * Licensed Materials - Property of IBM
- */
+// Copyright IBM Corp. 2026
 
 export interface UserInfo {
   firstName: string;
@@ -25,9 +22,8 @@ export interface UserInfoResponse {
         firstName: string;
       };
     };
-    user: {
-      associateName: string;
-      rolesMeta: string;
+    currentAssociate: {
+      name: string;
     };
   };
 }
