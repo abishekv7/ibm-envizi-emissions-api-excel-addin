@@ -74,8 +74,8 @@ Location-based Emissions
      - Nitrogen trifluoride (NF3) emissions reported separately.
    * - ``bioCO2``
      - Biogenic carbon dioxide (bioCO2) emissions, if applicable.
-   * - ``directCO2``
-     - Direct CO2 emissions explicitly reported when available.
+   * - ``indirectCO2e``
+     - Indirect CO2 equivalent emissions, if applicable.
    * - ``Unit``
      - Unit of measurement for the emissions result.
    * - ``Description``
@@ -122,8 +122,8 @@ Stationary Source Emissions
      - Nitrogen trifluoride (NF3) emissions reported separately.
    * - ``bioCO2``
      - Biogenic carbon dioxide (bioCO2) emissions, if applicable.
-   * - ``directCO2``
-     - Direct CO2 emissions explicitly reported when available.
+   * - ``indirectCO2e``
+     - Indirect CO2 equivalent emissions, if applicable.
    * - ``Unit``
      - Unit of measurement for the emissions result.
    * - ``Description``
@@ -170,8 +170,8 @@ Fugitive Emissions
      - Nitrogen trifluoride (NF3) emissions reported separately.
    * - ``bioCO2``
      - Biogenic carbon dioxide (bioCO2) emissions, if applicable.
-   * - ``directCO2``
-     - Direct CO2 emissions explicitly reported when available.
+   * - ``indirectCO2e``
+     - Indirect CO2 equivalent emissions, if applicable.
    * - ``Unit``
      - Unit of measurement for the emissions result.
    * - ``Description``
@@ -218,8 +218,8 @@ Mobile Emissions
      - Nitrogen trifluoride (NF3) emissions reported separately.
    * - ``bioCO2``
      - Biogenic carbon dioxide (bioCO2) emissions, if applicable.
-   * - ``directCO2``
-     - Direct CO2 emissions explicitly reported when available.
+   * - ``indirectCO2e``
+     - Indirect CO2 equivalent emissions, if applicable.
    * - ``Unit``
      - Unit of measurement for the emissions result.
    * - ``Description``
@@ -266,8 +266,8 @@ Transportation and Distribution
      - Nitrogen trifluoride (NF3) emissions reported separately.
    * - ``bioCO2``
      - Biogenic carbon dioxide (bioCO2) emissions, if applicable.
-   * - ``directCO2``
-     - Direct CO2 emissions explicitly reported when available.
+   * - ``indirectCO2e``
+     - Indirect CO2 equivalent emissions, if applicable.
    * - ``Unit``
      - Unit of measurement for the emissions result.
    * - ``Description``
@@ -314,8 +314,8 @@ Calculation
      - Nitrogen trifluoride (NF3) emissions reported separately.
    * - ``bioCO2``
      - Biogenic carbon dioxide (bioCO2) emissions, if applicable.
-   * - ``directCO2``
-     - Direct CO2 emissions explicitly reported when available.
+   * - ``indirectCO2e``
+     - Indirect CO2 equivalent emissions, if applicable.
    * - ``Unit``
      - Unit of measurement for the emissions result.
    * - ``Description``
@@ -449,14 +449,18 @@ Economic Activity
      - Nitrogen trifluoride (NF3) emissions reported separately.
    * - ``bioCO2``
      - Biogenic carbon dioxide (bioCO2) emissions, if applicable.
-   * - ``directCO2``
-     - Direct CO2 emissions explicitly reported when available.
+   * - ``indirectCO2e``
+     - Indirect CO2 equivalent emissions, if applicable.
    * - ``Unit``
      - Unit of measurement for the emissions result.
    * - ``Description``
      - Provides details on the factor set used in the calculation.
    * - ``Transaction Id``
      - Unique identifier for the calculation transaction, used for reference and auditing.
+   * - ``Energy (MWh)``
+     - Energy consumption in megawatt-hours (MWh).
+   * - ``Asset Turn Over Ratio``
+     - The asset turnover ratio for the activity, if applicable.
 
 ---
 
@@ -516,14 +520,18 @@ Real Estate
      - Nitrogen trifluoride (NF3) emissions reported separately.
    * - ``bioCO2``
      - Biogenic carbon dioxide (bioCO2) emissions, if applicable.
-   * - ``directCO2``
-     - Direct CO2 emissions explicitly reported when available.
+   * - ``indirectCO2e``
+     - Indirect CO2 equivalent emissions, if applicable.
    * - ``Unit``
      - Unit of measurement for the emissions result.
    * - ``Description``
      - Provides details on the factor set used in the calculation.
    * - ``Transaction Id``
      - Unique identifier for the calculation transaction, used for reference and auditing.
+   * - ``Energy (MWh)``
+     - Energy consumption in megawatt-hours (MWh).
+   * - ``Asset Turn Over Ratio``
+     - The asset turnover ratio for the activity, if applicable.
 
 ---
 
@@ -616,64 +624,68 @@ Uses AI to recommend the most appropriate activity type based on a text descript
 Headers
 ~~~~~~~
 
-Returns the input or output column headers for a specific endpoint. Useful for setting up spreadsheet templates.
+Returns the input and/or output column headers for a specific endpoint. Useful for setting up spreadsheet templates.
 
 **Syntax**
 
 .. code-block:: none
 
-   =ENVIZI.HEADERS([functionName], [input], [includeDataTypeRecommender])
+   =ENVIZI.HEADERS([functionName], [input], [output], [includeActivityTypeRecommender])
 
 **Parameters**
 
 - ``functionName`` *(optional)* – Endpoint name (location, stationary, fugitive, mobile, transportation_and_distribution, calculation, economic_activity, real_estate, factor, factor_search, recommend_activity_type). Default: calculation
-- ``input`` *(optional)* – TRUE for input headers, FALSE for output headers. Default: FALSE
-- ``includeDataTypeRecommender`` *(optional)* – TRUE to include AI-recommended activity type columns in input headers (adds "Recommended Activity Type", "Confidence(%)", and "Description" after "Activity Type"). Only applies when input=TRUE. Default: FALSE
+- ``input`` *(optional)* – TRUE to include input headers, FALSE to exclude. Default: TRUE
+- ``output`` *(optional)* – TRUE to include output headers, FALSE to exclude. Default: TRUE
+- ``includeActivityTypeRecommender`` *(optional)* – TRUE to include AI-recommended activity type columns in input headers (adds "Recommended Activity Type", "Confidence(%)", and "Description" after "Activity Type"). Only applies when input=TRUE. Ignored when input=FALSE. Default: FALSE
 
 **Examples**
 
 .. code-block:: none
 
-   =ENVIZI.HEADERS()                                    // Returns output headers for calculation endpoint
-   =ENVIZI.HEADERS("location")                          // Returns output headers for location endpoint
-   =ENVIZI.HEADERS("stationary", TRUE)                  // Returns input headers for stationary endpoint
-   =ENVIZI.HEADERS("stationary", TRUE, TRUE)            // Returns input headers with recommender columns
-   =ENVIZI.HEADERS("factor", FALSE)                     // Returns output headers for factor endpoint
-   =ENVIZI.HEADERS("recommend_activity_type", FALSE)    // Returns output headers for activity type recommender
+   =ENVIZI.HEADERS()                                        // Returns both input and output headers for calculation endpoint
+   =ENVIZI.HEADERS("location")                              // Returns both input and output headers for location endpoint
+   =ENVIZI.HEADERS("stationary", TRUE, FALSE)               // Returns only input headers for stationary endpoint
+   =ENVIZI.HEADERS("stationary", FALSE, TRUE)               // Returns only output headers for stationary endpoint
+   =ENVIZI.HEADERS("stationary", TRUE, TRUE, TRUE)          // Returns both input and output headers with recommender columns
+   =ENVIZI.HEADERS("factor", FALSE, TRUE)                   // Returns only output headers for factor endpoint
+   =ENVIZI.HEADERS("recommend_activity_type", FALSE, TRUE)  // Returns only output headers for activity type recommender
 
 **Output**
 
-Returns a single row array containing the header names for the specified endpoint and type (input/output).
+Returns a single row array containing the header names for the specified endpoint. When both input and output are TRUE, returns both sets of headers in one row.
 
 **Note on Data Type Recommender**
 
-When ``includeDataTypeRecommender`` is TRUE, the input headers will include three additional columns after "Activity Type":
+When ``includeActivityTypeRecommender`` is TRUE and ``input`` is TRUE, the input headers will include three additional columns after "Activity Type":
 
 - **Recommended Activity Type** – AI-suggested activity type based on your description
 - **Confidence(%)** – Confidence level of the recommendation (0-100)
 - **Description** – Description of the recommended activity type
 
-This is useful when you want to use the ``ENVIZI.RECOMMEND_ACTIVITY_TYPE`` function to get AI suggestions for activity types before performing calculations.
+This is useful when you want to use the ``ENVIZI.RECOMMEND_ACTIVITY_TYPE`` function to get AI suggestions for activity types before performing calculations. Note that this parameter is ignored when ``input`` is FALSE.
 
 ---
 
 Headers by FactorId
 ~~~~~~~~~~~~~~~~~~~
 
-Returns the input or output column headers for factorId-based calculations. Use this when working with factorId instead of type-based parameters.
+Returns the input and/or output column headers for factorId-based calculations. Use this when working with factorId instead of type-based parameters.
 
 **Syntax**
 
 .. code-block:: none
 
-   =ENVIZI.HEADERS_BY_FACTORID([functionName], [input])
+   =ENVIZI.HEADERS_BY_FACTORID([functionName], [input], [output], [includeActivityTypeRecommender])
 
 **Parameters**
 
 - ``functionName`` *(optional)* – Endpoint name (location, stationary, fugitive, mobile, transportation_and_distribution, calculation, economic_activity, real_estate, factor). Default: calculation
-- ``input`` *(optional)* – TRUE for input headers, FALSE for output headers. Default: FALSE
+- ``input`` *(optional)* – TRUE to include input headers, FALSE to exclude. Default: TRUE
+- ``output`` *(optional)* – TRUE to include output headers, FALSE to exclude. Default: TRUE
+- ``includeActivityTypeRecommender`` *(optional)* – This parameter is ignored for factorId-based functions as they don't support recommender headers. Default: FALSE
 
-**Note:** The ``factor_search`` endpoint does not support factorId-based calls.
+**Note:** The ``factor_search`` and ``recommend_activity_type`` endpoints do not support factorId-based calls.
 
 **Examples**
 
@@ -681,11 +693,13 @@ Returns the input or output column headers for factorId-based calculations. Use 
    :header-rows: 1
    :widths: 20 80
 
-   =ENVIZI.HEADERS_BY_FACTORID("location", TRUE)     // Returns: factorId, value, unit
-   =ENVIZI.HEADERS_BY_FACTORID("factor", TRUE)       // Returns: factorId, unit
-   =ENVIZI.HEADERS_BY_FACTORID("calculation")        // Returns output headers (same as regular HEADERS)
+   =ENVIZI.HEADERS_BY_FACTORID("location", TRUE, FALSE)     // Returns only input headers: factorId, value, unit
+   =ENVIZI.HEADERS_BY_FACTORID("factor", TRUE, FALSE)       // Returns only input headers: factorId, unit
+   =ENVIZI.HEADERS_BY_FACTORID("calculation")               // Returns both input and output headers
+   =ENVIZI.HEADERS_BY_FACTORID("calculation", FALSE, TRUE)  // Returns only output headers (same as regular HEADERS)
+   =ENVIZI.HEADERS_BY_FACTORID("location", TRUE, TRUE)      // Returns both input and output headers
 
 **Output**
 
-Returns a single row array containing the factorId-based header names for the specified endpoint.
+Returns a single row array containing the factorId-based header names for the specified endpoint. When both input and output are TRUE, returns both sets of headers in one row.
      - Factor ID from Envizi.

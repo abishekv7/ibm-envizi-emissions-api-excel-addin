@@ -1,13 +1,18 @@
 // Copyright IBM Corp. 2026
 
 import { Button, Field, Input, Spinner } from "@fluentui/react-components";
+import { ArrowExitRegular, Open16Regular } from "@fluentui/react-icons";
 import React from "react";
 
-import { ArrowExitRegular, Open16Regular } from "@fluentui/react-icons";
 import { ApiCredentials } from "../../../common/credentials";
-import { getEnviziExcelAddInOverviewUrl, getOverviewDashboardUrl } from "../../../common/env";
+import {
+  getAccountUsageUrl,
+  getEnableEnviziLogin,
+  getOverviewDashboardUrl,
+} from "../../../common/env";
 import { useAccountSubscription, useAuth, useUserInfo } from "../../hooks";
 import { subscriptionTypeKeyMap } from "../../types/product-subscriptions.types";
+import { UpgradeBanner } from "../UpgradeBanner/UpgradeBanner";
 
 function AccountInformation() {
   const { isLoading: isLoadingUser, isError: isErrorUser, data: userInfo } = useUserInfo();
@@ -40,12 +45,15 @@ function AccountInformation() {
         <Field label="Username">
           <Input appearance="underline" value={userInfo.email || ""} readOnly />
         </Field>
-        <Field label="Account type">
+        <Field label="Subscription type">
           <Input
             appearance="underline"
             value={subscriptionTypeKeyMap[subscriptionType] || ""}
             readOnly
           />
+        </Field>
+        <Field label="Organization">
+          <Input appearance="underline" value={userInfo.orgName || ""} readOnly />
         </Field>
       </div>
     </form>
@@ -75,15 +83,19 @@ function ApiCredentialsForm() {
 
 export const AccountTab: React.FC = () => {
   const { state, logout } = useAuth();
+  const { data: subscriptionData } = useAccountSubscription();
 
   const isTokenAuth = state.credentials && "token" in state.credentials;
-  const overviewDashboardUrl = isTokenAuth
-    ? getEnviziExcelAddInOverviewUrl()
-    : getOverviewDashboardUrl();
+  const overviewDashboardUrl = isTokenAuth ? getAccountUsageUrl() : getOverviewDashboardUrl();
 
   const handleViewDashboard = () => {
     window.open(overviewDashboardUrl, "_blank", "noopener");
   };
+
+  const shouldShowUpgradeBanner =
+    getEnableEnviziLogin() &&
+    !state.credentials["apiKey"] &&
+    subscriptionData?.subscriptionType !== "premium";
 
   return (
     <div className="account-panel">
@@ -95,7 +107,7 @@ export const AccountTab: React.FC = () => {
           iconPosition="after"
           onClick={handleViewDashboard}
         >
-          View dashboard
+          {isTokenAuth ? "View account and usage" : "View dashboard"}
         </Button>
         <Button
           appearance="outline"
@@ -106,6 +118,7 @@ export const AccountTab: React.FC = () => {
           Logout
         </Button>
       </div>
+      {shouldShowUpgradeBanner && <UpgradeBanner />}
     </div>
   );
 };

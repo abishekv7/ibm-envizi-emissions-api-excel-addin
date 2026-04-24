@@ -1,7 +1,4 @@
-/*
- * Copyright IBM Corp. 2026
- * Licensed Materials - Property of IBM
- */
+// Copyright IBM Corp. 2026
 
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
@@ -15,10 +12,10 @@ import { useAuth } from "./useAuth";
 const subscriptionTypes: Record<string, SubscriptionType | Record<string, SubscriptionType>> = {
   EMISSIONS_TRIAL: "trial", // Preview
   EMISSIONS_TRIAL_GA: "trial", // GA trial
-  EMISSIONS_FREE: "basic",
-  D11IQZX: "marketplace",
+  EMISSIONS_FREE: "standard",
+  D11IQZX: "essentials",
   D09SJZX: {
-    standard: "basic",
+    standard: "standard",
     premium: "premium",
   },
 };
