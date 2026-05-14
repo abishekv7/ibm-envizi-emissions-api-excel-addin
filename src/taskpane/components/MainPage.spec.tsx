@@ -9,11 +9,9 @@ import { MainPage } from "./MainPage";
 // Mock the credentials module
 jest.mock("../../common/credentials", () => ({
   loadCredentialsFromStorage: jest.fn().mockResolvedValue(null),
-  saveApiCredentialsToStorage: jest.fn(),
   saveUserCredentialsToStorage: jest.fn(),
-  removeApiCredentialsFromStorage: jest.fn(),
   removeCredentialsFromStorage: jest.fn(),
-  setApiCredentials: jest.fn(),
+  setUserCredentials: jest.fn(),
 }));
 
 // Mock the client module
@@ -36,10 +34,6 @@ jest.mock("./ResourcesTab/ResourcesTab", () => ({
 }));
 
 describe("MainPage", () => {
-  beforeAll(() => {
-    window.localStorage.setItem("enableEnviziLogin", "false");
-  });
-
   const renderMainPage = () => {
     return render(
       <AuthProvider>

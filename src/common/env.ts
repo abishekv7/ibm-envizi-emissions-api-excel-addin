@@ -1,46 +1,67 @@
 // Copyright IBM Corp. 2025, 2026
 
-export type EnvType = "prod";
+export type EnvType = "prod" | "np" | "local";
 export type ApiId = "saascore" | "ghgemissions";
 
 declare global {
   interface Window {
     envType?: EnvType;
-    enableEnviziLogin?: boolean;
   }
 }
 
 export const apiUrls: Record<ApiId, Record<EnvType, string>> = {
   saascore: {
     prod: "https://api.ibm.com/saascore/run",
+    np: "https://dev.api.ibm.com/saascore/test",
+    local: "https://dev.api.ibm.com/saascore/test",
   },
   ghgemissions: {
     prod: "https://api.ibm.com/ghgemissions/run",
+    np: "https://dev.api.ibm.com/ghgemissions/test",
+    local: "https://dev.api.ibm.com/ghgemissions/test",
   },
 };
 
 export const apiHomeUrls: Record<EnvType, string> = {
   prod: "https://www.app.ibm.com/envizi/emissions-api-home",
+  np: "https://www-dev.app.ibm.com/envizi/emissions-api-home",
+  local: "https://www-dev.app.ibm.com/envizi/emissions-api-home",
 };
 
 export const enviziUiOrigins: Record<EnvType, string> = {
   prod: "https://envizi.ibm.com",
+  np: "https://us006t.envizi.com",
+  local: "https://local.us006t.envizi.com",
 };
 
 export const enviziApiOrigins: Record<EnvType, string> = {
   prod: "https://envizi.ibm.com",
+  np: "https://us006t.envizi.com",
+  local: "https://us006t.envizi.com",
 };
 
 export const enviziGraphQLUrls: Record<string, string> = {
   "https://envizi.ibm.com": "https://envizi.ibm.com/graphqlapi-uxm",
+  "https://pentest.envizi.ibm.com": "https://pentest.envizi.ibm.com/graphqlapi-uxm",
+  "https://us006t.envizi.com": "https://us006t.envizi.com/graphqlapi-dev",
 };
 
 export const enviziApiHomeUrls: Record<EnvType, string> = {
   prod: `${getEnviziUiOrigin("prod")}/emissions`,
+  np: `${getEnviziUiOrigin("np")}/emissions`,
+  local: `${getEnviziUiOrigin("local")}/emissions-bridge`,
 };
 
 function detectEnvType(): EnvType {
-  return "prod";
+  const origin = window.location.origin;
+  if (origin === "https://plugins.app.ibm.com") {
+    return "prod";
+  } else if (origin === "https://plugins-dev.app.ibm.com") {
+    return "np";
+  } else if (/localhost/gi.test(origin)) {
+    return "local";
+  }
+  return "np";
 }
 
 export function getEnvType(): EnvType {
@@ -96,14 +117,6 @@ export function getEnviziApiOrigin(envType?: EnvType): string {
 export function getEnviziGraphQLUrl(envType?: EnvType): string {
   const apiOrigin = getEnviziApiOrigin(envType);
   return enviziGraphQLUrls[apiOrigin];
-}
-
-export function getEnableEnviziLogin(): boolean {
-  if (window.enableEnviziLogin === undefined) {
-    const enableOverride = window.localStorage.getItem("enableEnviziLogin");
-    window.enableEnviziLogin = enableOverride ? enableOverride === "true" : true;
-  }
-  return window.enableEnviziLogin;
 }
 
 /**

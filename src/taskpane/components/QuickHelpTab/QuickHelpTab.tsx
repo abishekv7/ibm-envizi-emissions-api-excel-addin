@@ -15,17 +15,17 @@ import {
   AccordionPanel,
   Button,
   Image,
+  Link,
   Text,
   makeStyles,
 } from "@fluentui/react-components";
 import {
+  ArrowDownload16Regular,
   Open16Regular,
   PanelSeparateWindow20Regular,
   PlayCircleFilled,
 } from "@fluentui/react-icons";
-import { useState } from "react";
 
-import { getEnableEnviziLogin } from "../../../common/env";
 import { EmissionScopeSection } from "../EmissionScopeSection";
 import { EmissionScopeConfig } from "../EmissionScopeSection/types";
 import { functions, gettingStartedSteps, usefulFeatures } from "./contstant";
@@ -55,6 +55,16 @@ const useVideoSectionStyles = makeStyles({
   imagePlaceholder: {
     display: "flex",
     justifyContent: "center",
+  },
+  linksWrapper: {
+    display: "flex",
+    flexDirection: "column",
+    gap: "1rem",
+  },
+  linkWithIcon: {
+    display: "flex",
+    gap: "0.5rem",
+    alignItems: "center",
   },
 });
 
@@ -151,20 +161,12 @@ function ExternalLinkButton({
 function GettingStartedAccordionItem(): React.ReactElement {
   const styles = useVideoSectionStyles();
 
-  // Initialize state directly from localStorage
-  const [showVideoSection] = useState(() => {
-    return localStorage.getItem("enableVideoSection") === "true";
-  });
-
-  const documentUrl = getEnableEnviziLogin()
-    ? "SSFJN8P/topics/c_ctr_new_emissions_excel.html"
-    : "api-calculating-emissions-in-microsoft-excel";
-
   const handleImageClick = () => {
     // Open media page in a separate dialog window using generic redirect page
     const currentPath = window.location.pathname;
     const rootPath = currentPath.substring(0, currentPath.lastIndexOf("/"));
-    const videoUrl = "https://mediacenter.ibm.com/media/1_700skqlt";
+    const videoUrl =
+      "https://mediacenter.ibm.com/media/Setting+up+the+Microsoft+Excel+add-in+for+IBM+Envizi+Emissions+API/1_z5qb7lsy";
     const redirectUrl = `${window.location.origin}${rootPath}/redirect.html?url=${videoUrl}`;
     Office.context.ui.displayDialogAsync(
       redirectUrl,
@@ -184,24 +186,22 @@ function GettingStartedAccordionItem(): React.ReactElement {
         <section className="accordion-content">
           <p>
             Calculate greenhouse gas (GHG) emissions directly in your spreadsheet. You enter your
-            data, and Microsoft Excel uses verified emission factors to automatically calculate
+            data, and Envizi Emissions API uses verified emission factors to automatically calculate
             emissions in tonnes of CO₂ equivalent. No extra tools or steps needed.
           </p>
 
-          {showVideoSection && (
-            <div className={styles.imageWrapper}>
-              <Button className={styles.imageContainer} onClick={handleImageClick}>
-                <Image alt="How to play" src="assets/excel-how-to.png" fit="cover" />
-                <div className={styles.playButtonOverlay}>
-                  <PlayCircleFilled />
-                </div>
-              </Button>
-              <div className={styles.imagePlaceholder}>
-                <Text>How to use excel add-in (placeholder)</Text>
-                <PanelSeparateWindow20Regular />
+          <div className={styles.imageWrapper}>
+            <Button className={styles.imageContainer} onClick={handleImageClick}>
+              <Image alt="How to play" src="assets/excel-how-to.png" fit="cover" />
+              <div className={styles.playButtonOverlay}>
+                <PlayCircleFilled />
               </div>
+            </Button>
+            <div className={styles.imagePlaceholder}>
+              <Text>How to use Excel add-in</Text>
+              <PanelSeparateWindow20Regular />
             </div>
-          )}
+          </div>
 
           <Text size={400} weight="semibold">
             Using the Envizi template
@@ -210,11 +210,26 @@ function GettingStartedAccordionItem(): React.ReactElement {
             <StepItem key={step.title} title={step.title} description={step.description} />
           ))}
 
-          <ExternalLinkButton
-            href={`https://www.ibm.com/docs/envizi-esg-suite?topic=${documentUrl}`}
-          >
-            Excel add-in documentation
-          </ExternalLinkButton>
+          <div className={styles.linksWrapper}>
+            <Link
+              href="https://www.ibm.com/docs/SSFJN8P/topics/c_ctr_new_emissions_excel.htm"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.linkWithIcon}
+            >
+              Excel add-in documentation
+              <Open16Regular />
+            </Link>
+            <Link
+              href="https://plugins.app.ibm.com/excel-addin/IBM%20Envizi%20Emissions%20Calculations%20Template.xlsx"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.linkWithIcon}
+            >
+              Download the template
+              <ArrowDownload16Regular />
+            </Link>
+          </div>
         </section>
       </AccordionPanel>
     </AccordionItem>
@@ -222,11 +237,6 @@ function GettingStartedAccordionItem(): React.ReactElement {
 }
 
 function UsefulFeaturesAccordionItem(): React.ReactElement {
-  const learnMoreTopic = getEnableEnviziLogin()
-    ? "SSFJN8P/topics/c_ctr_new_emissions_excel.html"
-    : "api-calculating-emissions-in-microsoft-excel";
-  const learnMoreFeatureLink = `https://www.ibm.com/docs/envizi-esg-suite?topic=${learnMoreTopic}`;
-
   return (
     <AccordionItem value="useful-features">
       <AccordionHeader>Useful features</AccordionHeader>
@@ -239,7 +249,7 @@ function UsefulFeaturesAccordionItem(): React.ReactElement {
 
           <EmissionScopeSections
             features={usefulFeatures}
-            learnMoreLink={learnMoreFeatureLink}
+            learnMoreLink="https://www.ibm.com/docs/envizi-esg-suite?topic=SSFJN8P/topics/c_ctr_new_emissions_excel.html"
             learnMoreText="Learn more about features"
           />
         </section>
@@ -270,7 +280,7 @@ export function QuickHelpTab() {
     <div className="home-panel">
       <Accordion multiple collapsible defaultOpenItems={["getting-started", "useful-features"]}>
         <GettingStartedAccordionItem />
-        {getEnableEnviziLogin() && <UsefulFeaturesAccordionItem />}
+        <UsefulFeaturesAccordionItem />
         <FunctionsAccordionItem />
       </Accordion>
     </div>
