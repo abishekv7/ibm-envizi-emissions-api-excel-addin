@@ -5,7 +5,7 @@
     <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="index" title="Index" href="genindex.html"><link rel="search" title="Search" href="search.html"><link rel="next" title="Troubleshooting Guide" href="troubleshooting.html"><link rel="prev" title="Use" href="use.html">
 
-    <!-- Generated with Sphinx 7.4.7 and Furo 2025.12.19 -->
+    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
         <title>Reference - IBM Envizi for Excel documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=7bdb33bb" />
@@ -940,27 +940,19 @@
 </section>
 <section id="factor-search">
 <h3>Factor Search<a class="headerlink" href="#factor-search" title="Link to this heading">¶</a></h3>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>=ENVIZI.FACTOR_SEARCH(search, country, [stateProvince], [date])
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>=ENVIZI.FACTOR_SEARCH(search, country, [stateProvince], [unit], [scope], [date], [page], [size])
 </pre></div>
 </div>
 <p><strong>Parameters</strong></p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">type</span></code> – Activity type</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">value</span></code> – Numeric activity value</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">unit</span></code> – Unit of measurement</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">search</span></code> – Search query string</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">country</span></code> – ISO alpha-3 country code</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">stateProvince</span></code> <em>(optional)</em> – Geographic state or province</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">date</span></code> <em>(optional)</em> – Activity date</p></li>
-</ul>
-<p>—</p>
-<p><strong>Alternate Syntax (factorId)</strong></p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>=ENVIZI.ECONOMIC_ACTIVITY_BY_FACTORID(factorId, value, unit)
-</pre></div>
-</div>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">factorId</span></code> – Factor ID from Envizi</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">value</span></code> – Numeric activity value</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">unit</span></code> – Unit of measurement</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">unit</span></code> <em>(optional)</em> – Unit of measurement to filter results (e.g., “kWh”, “liters”)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">scope</span></code> <em>(optional)</em> – Emission scope to filter results (e.g., “1”, “2”, “3”)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">date</span></code> <em>(optional)</em> – Activity date (format: YYYY-MM-DD or Excel date)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">page</span></code> <em>(optional)</em> – Page number for pagination (default: 1)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">size</span></code> <em>(optional)</em> – Number of results per page (default: 30)</p></li>
 </ul>
 <p><strong>Outputs</strong></p>
 <div class="table-wrapper colwidths-given docutils container">
@@ -975,44 +967,23 @@
 </tr>
 </thead>
 <tbody>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Total</span> <span class="pre">CO2e</span></code></p></td>
-<td><p>The total emissions expressed as carbon dioxide equivalent (CO2e). This is the sum of all GHGs weighted by their global warming potential (GWP).</p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">factorSet</span></code></p></td>
+<td><p>The emission factor dataset used for calculation (e.g., DEFRA, EPA).</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">CO2</span></code></p></td>
-<td><p>Direct carbon dioxide (CO2) emissions reported separately.</p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">source</span></code></p></td>
+<td><p>Reference source of the factor (e.g., publication, license link).</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">CH4</span></code></p></td>
-<td><p>Methane (CH4) emissions reported separately.</p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">activityType</span></code></p></td>
+<td><p>Category of data (e.g., Electricity - Scope 3).</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">N2O</span></code></p></td>
-<td><p>Nitrous oxide (N2O) emissions reported separately.</p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">activityUnit</span></code></p></td>
+<td><p>Unit of input activity data (e.g., kWh, liters).</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">HFC</span></code></p></td>
-<td><p>Hydrofluorocarbon (HFC) emissions reported separately.</p></td>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">region</span></code></p></td>
+<td><p>Geographic region where the factor applies.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">PFC</span></code></p></td>
-<td><p>Perfluorocarbon (PFC) emissions reported separately.</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">SF6</span></code></p></td>
-<td><p>Sulfur hexafluoride (SF6) emissions reported separately.</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">NF3</span></code></p></td>
-<td><p>Nitrogen trifluoride (NF3) emissions reported separately.</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">bioCO2</span></code></p></td>
-<td><p>Biogenic carbon dioxide (bioCO2) emissions, if applicable.</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">directCO2</span></code></p></td>
-<td><p>Direct CO2 emissions explicitly reported when available.</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Unit</span></code></p></td>
-<td><p>Unit of measurement for the emissions result.</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">Description</span></code></p></td>
-<td><p>Provides details on the factor set used in the calculation.</p></td>
-</tr>
-<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">Transaction</span> <span class="pre">Id</span></code></p></td>
-<td><p>Unique identifier for the calculation transaction, used for reference and auditing.</p></td>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">factorId</span></code></p></td>
+<td><p>Factor ID from Envizi.</p></td>
 </tr>
 </tbody>
 </table>
@@ -1023,7 +994,7 @@
 <h3>Recommend Activity Type<a class="headerlink" href="#recommend-activity-type" title="Link to this heading">¶</a></h3>
 <p>Uses AI to recommend the most appropriate activity type based on a text description. This function helps users find the correct activity type when they’re unsure which one to use for their emissions calculation.</p>
 <p><strong>Syntax</strong></p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>=ENVIZI.RECOMMEND_ACTIVITY_TYPE(search, country, [stateProvince], [date])
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>=ENVIZI.RECOMMEND_ACTIVITY_TYPE(search, country, [stateProvince], [unit], [scope], [date])
 </pre></div>
 </div>
 <p><strong>Parameters</strong></p>
@@ -1031,6 +1002,8 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">search</span></code> – Text description of the activity (e.g., “electricity consumption”, “diesel fuel”, “air travel”)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">country</span></code> – ISO alpha-3 country code</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">stateProvince</span></code> <em>(optional)</em> – Geographic state or province</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">unit</span></code> <em>(optional)</em> – Unit of measurement to filter recommendations (e.g., “kWh”, “liters”)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">scope</span></code> <em>(optional)</em> – Emission scope to filter recommendations (e.g., “1”, “2”, “3”)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">date</span></code> <em>(optional)</em> – Activity date (format: YYYY-MM-DD or Excel date)</p></li>
 </ul>
 <p><strong>Outputs</strong></p>
@@ -1060,7 +1033,9 @@
 </div>
 <p><strong>Examples</strong></p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>=ENVIZI.RECOMMEND_ACTIVITY_TYPE(&quot;electricity usage&quot;, &quot;USA&quot;)
-=ENVIZI.RECOMMEND_ACTIVITY_TYPE(&quot;diesel fuel for trucks&quot;, &quot;GBR&quot;, &quot;England&quot;, &quot;2024-01-15&quot;)
+=ENVIZI.RECOMMEND_ACTIVITY_TYPE(&quot;office consumed electricity&quot;, &quot;USA&quot;, , &quot;kWh&quot;)
+=ENVIZI.RECOMMEND_ACTIVITY_TYPE(&quot;heating with natural gas&quot;, &quot;USA&quot;, , , &quot;1&quot;)
+=ENVIZI.RECOMMEND_ACTIVITY_TYPE(&quot;diesel fuel for trucks&quot;, &quot;GBR&quot;, &quot;England&quot;, , , &quot;2024-01-15&quot;)
 =ENVIZI.RECOMMEND_ACTIVITY_TYPE(&quot;natural gas heating&quot;, &quot;CAN&quot;, &quot;Ontario&quot;)
 </pre></div>
 </div>
@@ -1145,6 +1120,7 @@
 </ul>
 </dd>
 </dl>
+</section>
 </section>
 </section>
 
@@ -1233,8 +1209,8 @@
     </aside>
   </div>
 </div><script src="_static/documentation_options.js?v=5929fcd5"></script>
-    <script src="_static/doctools.js?v=9a2dae69"></script>
-    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/doctools.js?v=fd6eb6e6"></script>
+    <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
     <script src="_static/scripts/furo.js?v=46bd48cc"></script>
     </body>
 </html>
