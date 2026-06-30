@@ -13,6 +13,12 @@ jest.mock("axios");
 jest.mock("jwt-decode");
 jest.mock("./useAuth");
 
+jest.mock("./useUserInfo", () => ({
+  useUserInfo: jest.fn(() => ({
+    data: { id: 1, name: "Test User" },
+  })),
+}));
+
 const mockedAxios = axios as jest.Mocked<typeof axios>;
 const mockedJwtDecode = jwtDecode as jest.MockedFunction<typeof jwtDecode>;
 
@@ -136,25 +142,6 @@ describe("useAccountSubscription", () => {
         state: {
           isAuthenticated: false,
           credentials: null,
-        },
-      });
-
-      const { result } = renderHook(() => useAccountSubscription(), { wrapper });
-
-      expect(result.current.data).toBeUndefined();
-      expect(result.current.isLoading).toBe(false);
-    });
-
-    it("should return null when credentials do not have coreToken", () => {
-      const { useAuth } = require("./useAuth");
-      useAuth.mockReturnValue({
-        state: {
-          isAuthenticated: true,
-          credentials: {
-            apiKey: "test-key",
-            tenantId: "tenant-123",
-            orgId: "org-123",
-          },
         },
       });
 

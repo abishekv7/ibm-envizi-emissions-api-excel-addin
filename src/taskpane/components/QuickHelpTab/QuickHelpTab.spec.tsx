@@ -3,17 +3,18 @@
 import "@testing-library/jest-dom";
 
 import { fireEvent, render, screen } from "@testing-library/react";
+
 import { QuickHelpTab } from "./QuickHelpTab";
 
-const mockApiCredentials = {
-  apiKey: "test-api-key",
-  tenantId: "test-tenant-id",
-  orgId: "test-org-id",
+const mockUserCredentials = {
+  token: "test-token",
+  refreshToken: "test-refresh-token",
+  coreToken: "test-core-token",
 };
 
 const mockUseAuthReturn = {
   state: {
-    credentials: mockApiCredentials,
+    credentials: mockUserCredentials,
     isInitialized: true,
     isAuthenticated: true,
     isLoggedOut: false,
@@ -130,7 +131,7 @@ describe("QuickHelpTab", () => {
   });
 
   it("should render image placeholder text", () => {
-    expect(screen.queryByText(/How to use excel add-in \(placeholder\)/i)).toBeInTheDocument();
+    expect(screen.queryByText(/How to use Excel add-in/i)).toBeInTheDocument();
   });
 
   it("should render documentation link", () => {
@@ -138,7 +139,7 @@ describe("QuickHelpTab", () => {
     expect(docLink).toBeInTheDocument();
     expect(docLink).toHaveAttribute(
       "href",
-      "https://www.ibm.com/docs/envizi-esg-suite?topic=SSFJN8P/topics/c_ctr_new_emissions_excel.html"
+      "https://www.ibm.com/docs/SSFJN8P/topics/c_ctr_new_emissions_excel.htm"
     );
   });
 
@@ -195,14 +196,14 @@ describe("Useful Features Section", () => {
   it("should render AI recommendation feature description", () => {
     const description = screen.getByText(/You then review the recommended data type/i);
     expect(description).toBeInTheDocument();
-    expect(description.textContent).toContain("Get AI to help select a data type");
+    expect(description.textContent).toContain("Use AI to help you choose the activity type");
     expect(description.textContent).toContain("decide whether it is appropriate to your activity");
   });
 
   it("should render AI recommendation formula syntax", () => {
     expect(
       screen.getByText(
-        /=ENVIZI\.RECOMMEND\(search,country,\[stateProvince\],\[data\],\[page\],\[size\]\)/i
+        /=ENVIZI\.RECOMMEND_ACTIVITY_TYPE\(search,country,\[stateProvince\],\[unit\],\[scope\],\[date\]\)/i
       )
     ).toBeInTheDocument();
   });
@@ -221,7 +222,9 @@ describe("Useful Features Section", () => {
 
   it("should render headers formula syntax", () => {
     expect(
-      screen.getByText(/=ENVIZI\.HEADERS\(\(function Name\),\[input\]\)/i)
+      screen.getByText(
+        /=ENVIZI\.HEADERS\(\[functionName\],\[input\],\[output\],\[includeActivityTypeRecommender\]\)/i
+      )
     ).toBeInTheDocument();
   });
 
@@ -360,7 +363,9 @@ describe("Image Click Handler", () => {
     fireEvent.click(imageContainer);
 
     const callArgs = mockDisplayDialogAsync.mock.calls[0];
-    expect(callArgs[0]).toContain("redirect.html?url=https://mediacenter.ibm.com/media/1_700skqlt");
+    expect(callArgs[0]).toContain(
+      "redirect.html?url=https://mediacenter.ibm.com/media/Setting+up+the+Microsoft+Excel+add-in+for+IBM+Envizi+Emissions+API/1_z5qb7lsy"
+    );
     expect(callArgs[1]).toEqual({ height: 75, width: 75, promptBeforeOpen: false });
   });
 
@@ -512,7 +517,7 @@ describe("FunctionsAccordionItem", () => {
     const functionsButton = screen.getByRole("button", { name: /Functions/i });
     fireEvent.click(functionsButton);
 
-    expect(screen.getByText(/=ENVIZI\.FACTOR_SEARCH\(search, country/i)).toBeInTheDocument();
+    expect(screen.getByText(/=ENVIZI\.FACTOR_SEARCH\(search,country/i)).toBeInTheDocument();
   });
 
   it("should render view all functions link", () => {
@@ -564,21 +569,17 @@ describe("Conditional Rendering based on getEnableEnviziLogin", () => {
     const docLink = screen.getByRole("link", { name: /Excel add-in documentation/i });
     expect(docLink).toHaveAttribute(
       "href",
-      "https://www.ibm.com/docs/envizi-esg-suite?topic=SSFJN8P/topics/c_ctr_new_emissions_excel.html"
+      "https://www.ibm.com/docs/SSFJN8P/topics/c_ctr_new_emissions_excel.htm"
     );
   });
 
-  it("should use alternative documentation URL when getEnableEnviziLogin is false", () => {
-    mockEnableEnviziLogin = false;
-    const { getEnableEnviziLogin } = require("../../../common/env");
-    (getEnableEnviziLogin as jest.Mock).mockReturnValue(false);
-
+  it("should render documentation URL", () => {
     render(<QuickHelpTab />);
 
     const docLink = screen.getByRole("link", { name: /Excel add-in documentation/i });
     expect(docLink).toHaveAttribute(
       "href",
-      "https://www.ibm.com/docs/envizi-esg-suite?topic=api-calculating-emissions-in-microsoft-excel"
+      "https://www.ibm.com/docs/SSFJN8P/topics/c_ctr_new_emissions_excel.htm"
     );
   });
 });
@@ -763,16 +764,16 @@ describe("Edge Cases and Error Scenarios", () => {
     localStorage.removeItem("enableVideoSection");
     render(<QuickHelpTab />);
 
-    // Video section should not be rendered when localStorage is not set
-    expect(screen.queryByAltText("How to play")).not.toBeInTheDocument();
+    // Video section is now always rendered
+    expect(screen.queryByAltText("How to play")).toBeInTheDocument();
   });
 
   it("should handle video section when localStorage is set to false", () => {
     localStorage.setItem("enableVideoSection", "false");
     render(<QuickHelpTab />);
 
-    // Video section should not be rendered when localStorage is false
-    expect(screen.queryByAltText("How to play")).not.toBeInTheDocument();
+    // Video section is now always rendered regardless of localStorage
+    expect(screen.queryByAltText("How to play")).toBeInTheDocument();
 
     localStorage.clear();
   });
@@ -807,13 +808,11 @@ describe("Accessibility", () => {
   });
 
   it("should have proper role attribute on clickable image container", () => {
-    // Enable video section for this test
-    localStorage.setItem("enableVideoSection", "true");
-    render(<QuickHelpTab />);
-
-    const imageContainer = screen.getByRole("button", { name: /How to play/i });
+    const imageContainers = screen.getAllByRole("button", { name: /How to play/i });
     // Button component already has role="button" by default, verified by getByRole
-    expect(imageContainer).toBeInTheDocument();
+    // Video section is always rendered, so we expect at least one button
+    expect(imageContainers.length).toBeGreaterThan(0);
+    expect(imageContainers[0]).toBeInTheDocument();
 
     localStorage.clear();
   });
@@ -848,24 +847,23 @@ describe("Video Section Behavior", () => {
     localStorage.clear();
   });
 
-  it("should not render video section by default", () => {
+  it("should render video section by default", () => {
     render(<QuickHelpTab />);
-    expect(screen.queryByAltText("How to play")).not.toBeInTheDocument();
+    expect(screen.getByAltText("How to play")).toBeInTheDocument();
   });
 
-  it("should render video section when enabled in localStorage", () => {
-    localStorage.setItem("enableVideoSection", "true");
+  it("should render video section regardless of localStorage", () => {
+    localStorage.setItem("enableVideoSection", "false");
     render(<QuickHelpTab />);
 
     expect(screen.getByAltText("How to play")).toBeInTheDocument();
-    expect(screen.getByText(/How to use excel add-in \(placeholder\)/i)).toBeInTheDocument();
+    expect(screen.getByText(/How to use Excel add-in/i)).toBeInTheDocument();
   });
 
   it("should render play button overlay on video thumbnail", () => {
-    localStorage.setItem("enableVideoSection", "true");
     render(<QuickHelpTab />);
 
-    const imageContainer = screen.getByRole("button", { name: /How to play/i });
+    const imageContainer = screen.getAllByRole("button", { name: /How to play/i })[0];
     expect(imageContainer).toBeInTheDocument();
 
     // Check for play button icon
@@ -874,22 +872,22 @@ describe("Video Section Behavior", () => {
   });
 
   it("should construct correct redirect URL for video dialog", () => {
-    localStorage.setItem("enableVideoSection", "true");
     render(<QuickHelpTab />);
 
-    const imageContainer = screen.getByRole("button", { name: /How to play/i });
+    const imageContainer = screen.getAllByRole("button", { name: /How to play/i })[0];
     fireEvent.click(imageContainer);
 
     const callArgs = mockDisplayDialogAsync.mock.calls[0];
     expect(callArgs[0]).toContain("redirect.html");
-    expect(callArgs[0]).toContain("url=https://mediacenter.ibm.com/media/1_700skqlt");
+    expect(callArgs[0]).toContain(
+      "url=https://mediacenter.ibm.com/media/Setting+up+the+Microsoft+Excel+add-in+for+IBM+Envizi+Emissions+API/1_z5qb7lsy"
+    );
   });
 
   it("should use correct dialog dimensions", () => {
-    localStorage.setItem("enableVideoSection", "true");
     render(<QuickHelpTab />);
 
-    const imageContainer = screen.getByRole("button", { name: /How to play/i });
+    const imageContainer = screen.getAllByRole("button", { name: /How to play/i })[0];
     fireEvent.click(imageContainer);
 
     const callArgs = mockDisplayDialogAsync.mock.calls[0];
@@ -897,7 +895,6 @@ describe("Video Section Behavior", () => {
   });
 
   it("should not prompt before opening video dialog", () => {
-    localStorage.setItem("enableVideoSection", "true");
     render(<QuickHelpTab />);
 
     const imageContainer = screen.getByRole("button", { name: /How to play/i });
@@ -919,21 +916,17 @@ describe("Documentation Links", () => {
     const docLink = screen.getByRole("link", { name: /Excel add-in documentation/i });
     expect(docLink).toHaveAttribute(
       "href",
-      "https://www.ibm.com/docs/envizi-esg-suite?topic=SSFJN8P/topics/c_ctr_new_emissions_excel.html"
+      "https://www.ibm.com/docs/SSFJN8P/topics/c_ctr_new_emissions_excel.htm"
     );
   });
 
-  it("should render correct documentation link for Envizi login disabled", () => {
-    mockEnableEnviziLogin = false;
-    const { getEnableEnviziLogin } = require("../../../common/env");
-    (getEnableEnviziLogin as jest.Mock).mockReturnValue(false);
-
+  it("should render correct documentation link", () => {
     render(<QuickHelpTab />);
 
     const docLink = screen.getByRole("link", { name: /Excel add-in documentation/i });
     expect(docLink).toHaveAttribute(
       "href",
-      "https://www.ibm.com/docs/envizi-esg-suite?topic=api-calculating-emissions-in-microsoft-excel"
+      "https://www.ibm.com/docs/SSFJN8P/topics/c_ctr_new_emissions_excel.htm"
     );
   });
 
@@ -995,7 +988,7 @@ describe("Formula Rendering", () => {
 
   it("should render factor search formulas", () => {
     expect(screen.getByText(/=ENVIZI\.FACTOR\(type, unit, country/i)).toBeInTheDocument();
-    expect(screen.getByText(/=ENVIZI\.FACTOR_SEARCH\(search, country/i)).toBeInTheDocument();
+    expect(screen.getByText(/=ENVIZI\.FACTOR_SEARCH\(search,country/i)).toBeInTheDocument();
   });
 
   it("should render formula descriptions for all scopes", () => {
