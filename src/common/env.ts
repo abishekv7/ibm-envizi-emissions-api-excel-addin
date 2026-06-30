@@ -6,7 +6,6 @@ export type ApiId = "saascore" | "ghgemissions";
 declare global {
   interface Window {
     envType?: EnvType;
-    enableEnviziLogin?: boolean;
   }
 }
 
@@ -96,14 +95,6 @@ export function getEnviziApiOrigin(envType?: EnvType): string {
 export function getEnviziGraphQLUrl(envType?: EnvType): string {
   const apiOrigin = getEnviziApiOrigin(envType);
   return enviziGraphQLUrls[apiOrigin];
-}
-
-export function getEnableEnviziLogin(): boolean {
-  if (window.enableEnviziLogin === undefined) {
-    const enableOverride = window.localStorage.getItem("enableEnviziLogin");
-    window.enableEnviziLogin = enableOverride ? enableOverride === "true" : true;
-  }
-  return window.enableEnviziLogin;
 }
 
 /**
