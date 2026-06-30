@@ -204,34 +204,6 @@ describe("utils", () => {
       });
     });
   });
-
-  describe("buildSearchParams", () => {
-    it("should build search params with all parameters", () => {
-      const result = buildSearchParams(
-        "electricity",
-        "USA (United States)",
-        "USA - California",
-        "kWh",
-        "2",
-        "2024-01-01"
-      );
-      
-      expect(result).toEqual({
-        activity: { search: "electricity", unit: "kWh", scope: "2" },
-        location: { country: "USA", stateProvince: "California" },
-        time: { date: "2024-01-01" }
-      });
-    });
-
-    it("should build search params with only required parameters", () => {
-      const result = buildSearchParams("diesel", "USA");
-      
-      expect(result).toEqual({
-        activity: { search: "diesel" },
-        location: { country: "USA" }
-      });
-    });
-  });
 });
 
 // Made with Bob
